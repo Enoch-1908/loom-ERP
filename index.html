@@ -141,7 +141,7 @@
     #mobileBar .bar-label { font-size:11px; color:var(--muted); }
     #mobileBar button.active { color: var(--brand); }
 
-    /* Small screen adjustments */
+/* Small screen adjustments */
     @media (max-width:980px){
       .reports-shell { grid-template-columns: 1fr; }
       .reports-filters { order:2; }
@@ -234,18 +234,6 @@
           <span class="pill-label" data-i18n="nav.reports">அறிக்கைகள் (Reports)</span>
         </button>
 
-        <!-- New income & expense tab -->
-        <button id="tabIncomeExpBtn" class="nav-pill action-item" onclick="showTab('incomeExpenses', this)" aria-pressed="false" title="Income & Expenses">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h9M12 3v9M21 21v-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span class="pill-label">Income & Expenses</span>
-        </button>
-
-        <!-- Admin nav pill (desktop visible) -->
-        <button id="tabAdminBtn" class="nav-pill action-item" onclick="showTab('admin', this)" aria-pressed="false" title="Admin">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zM3 21a9 9 0 0118 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span class="pill-label" data-i18n="nav.admin">மேலாளருக்கான உள்ளீடு (Admin)</span>
-        </button>
-
         <!-- Translate button: only in header (desktop & mobile header). Removed translate from bottom tabs -->
         <button id="translateBtn" title="Toggle language" onclick="toggleLanguage()" aria-label="Translate">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h7"></path><path d="M3 12h13"></path><path d="M3 19h7"></path><path d="M21 5v14"></path></svg>
@@ -268,18 +256,6 @@
     <button aria-label="Reports" onclick="showTab('insights', document.getElementById('tabReportsBtn'))">
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 13h4v6H3zM9 8h4v11H9zM15 3h4v16h-4z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <div class="bar-label" data-i18n="nav.reports">அறிக்கைகள்</div>
-    </button>
-
-    <!-- NEW: Admin quick action in mobile bottom bar -->
-    <button aria-label="Admin" onclick="showTab('admin', document.getElementById('tabAdminBtn'))">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zM3 21a9 9 0 0118 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <div class="bar-label" data-i18n="nav.admin">மேலாளர்</div>
-    </button>
-
-    <!-- Mobile quick action: income & expenses -->
-    <button aria-label="Income & Expenses" onclick="showTab('incomeExpenses', document.getElementById('tabIncomeExpBtn'))">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h9M12 3v9M21 21v-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <div class="bar-label">Income</div>
     </button>
   </div>
 
@@ -329,7 +305,7 @@
         <div class="header">
           <div>
             <h2 data-i18n="bobin.title">பாபின் பதிவு</h2>
-            <p class="note" data-i18n="bobin.note">தறி-விற்கு சம்பாதித்த தொகையை இங்கு பதிவுசெய்து உங்கள் வருவாயில் சேர்க்குங்கள்.</p>
+            <p class="note" data-i18n="bobin.note">தறி-விற்கு சம்பாதித்த தொகையை இங்கே பதிவுசெய்து உங்கள் வருவாயில் சேர்க்குங்கள்.</p>
           </div>
           <div style="text-align:right;">
             <div id="bobinStatus" class="text-sm" style="color:var(--muted)">Ready</div>
@@ -378,7 +354,6 @@
               <option value="ledger" data-i18n="reports.type.ledger">நெசவாளர் கணக்கு (Ledger)</option>
               <option value="production" data-i18n="reports.type.production">உற்பத்தி விவரம் (Production)</option>
               <option value="payouts" data-i18n="reports.type.payouts">கட்டண வரலாறு (Payouts)</option>
-              <option value="income_expense">Income & Expenses</option>
             </select>
           </div>
 
@@ -474,181 +449,6 @@
 
     </section>
 
-    <!-- NEW: Income & Expenses Section -->
-    <section id="incomeExpenses" class="tab-content hidden" aria-hidden="true">
-      <div class="reports-shell">
-        <aside class="reports-filters" aria-label="Income & Expense filters">
-          <div class="filters-section">
-            <h4>Weaver / Loom</h4>
-            <select id="ieWeaverSelect" class="input-field" aria-label="Filter by weaver">
-              <option value="">-- --</option>
-            </select>
-            <select id="ieLoomSelect" class="input-field" aria-label="Filter by loom" style="margin-top:8px;">
-              <option value="">-- All looms --</option>
-            </select>
-          </div>
-
-          <div class="filters-section">
-            <h4>Date Range</h4>
-            <div class="filters-row">
-              <input type="date" id="ieStartDate" class="input-field" aria-label="Start date" />
-              <input type="date" id="ieEndDate" class="input-field" aria-label="End date" />
-            </div>
-            <div class="filters-presets">
-              <button class="preset-btn" onclick="setIERange('today')">Today</button>
-              <button class="preset-btn" onclick="setIERange('week')">This week</button>
-              <button class="preset-btn" onclick="setIERange('month')">This month</button>
-              <button class="preset-btn" onclick="setIERange('all')">All</button>
-            </div>
-          </div>
-
-          <div class="filters-section">
-            <h4>Quick Actions</h4>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button class="preset-btn" onclick="downloadIEPDF()">PDF</button>
-              <button class="preset-btn" onclick="downloadIECSV()">CSV</button>
-              <button class="preset-btn" onclick="refreshIEReport()">Refresh</button>
-            </div>
-          </div>
-
-          <div class="filters-section">
-            <h4>Add Expense (Admin quick)</h4>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              <input type="date" id="expenseDate" class="input-field" value="" />
-              <select id="expenseLoomSelect" class="input-field"><option value="">-- Choose Loom --</option></select>
-              <input id="expenseAmount" type="number" step="0.01" class="input-field" placeholder="Amount (₹)" />
-              <input id="expenseNote" type="text" class="input-field" placeholder="Note (reason)" />
-              <button id="saveExpenseBtn" class="primary-btn" type="button">Save Expense</button>
-            </div>
-            <div style="font-size:12px;color:var(--muted);margin-top:8px;">Expenses are stored per loom and appear in IE report.</div>
-          </div>
-        </aside>
-
-        <div class="reports-content">
-          <div class="kpis" role="region" aria-label="IE Key figures" style="margin-bottom:12px">
-            <div class="kpi">
-              <div class="label">Total Income</div>
-              <div id="ieTotalIncome" class="value">₹0</div>
-            </div>
-            <div class="kpi">
-              <div class="label">Total Expenses</div>
-              <div id="ieTotalExpenses" class="value payment">₹0</div>
-            </div>
-            <div class="kpi primary">
-              <div class="label">Net</div>
-              <div id="ieNet" class="value outstanding">₹0</div>
-            </div>
-          </div>
-
-          <div class="report-card">
-            <div class="card-head">
-              <div>
-                <h3 style="margin:0;font-size:16px;font-weight:800">Income & Expense Report</h3>
-                <div id="ieRange" style="color:var(--muted);font-size:13px;margin-top:4px"></div>
-              </div>
-              <div class="report-actions">
-                <button class="preset-btn" onclick="refreshIEReport()">Refresh</button>
-              </div>
-            </div>
-
-            <div class="content-controls">
-              <div class="controls-left"></div>
-              <div class="controls-right">
-                <div id="ieRowsSummary" style="color:var(--muted);font-size:13px">No data</div>
-              </div>
-            </div>
-
-            <div style="overflow-x:auto">
-              <table id="ieTable" class="report-table">
-                <thead id="ieHead"></thead>
-                <tbody id="ieBody"></tbody>
-              </table>
-            </div>
-
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
-              <div id="iePagination" style="display:flex;gap:8px;align-items:center"></div>
-              <div style="color:var(--muted);font-size:13px" id="iePageInfo"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- NEW: Admin Section (updated with income_rate & expense feed) -->
-    <section id="admin" class="tab-content hidden" aria-hidden="true">
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;">
-        <!-- 1. Weaver Onboarding -->
-        <div class="report-card" aria-labelledby="adminWeaverHead">
-          <div id="adminWeaverHead" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div>
-              <h3 style="margin:0;font-size:16px;font-weight:800" data-i18n="admin.weaver.title">1. Weaver Onboarding</h3>
-              <div class="note" data-i18n="admin.weaver.note">Add new weaver to system</div>
-            </div>
-            <div id="adminWeaverStatus" style="color:var(--muted);font-size:13px">Ready</div>
-          </div>
-
-          <form id="weaverForm" aria-label="Weaver Onboarding Form">
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <input id="weaverUsername" class="input-field" placeholder="System ID (e.g. W001)" aria-label="Weaver username" />
-              <input id="weaverFullName" class="input-field" placeholder="Full Weaver Name" aria-label="Full name" />
-              <div style="display:flex;gap:8px;align-items:center;">
-                <label style="font-weight:700;">Admin</label>
-                <input id="weaverIsAdmin" type="checkbox" />
-              </div>
-              <button type="button" id="saveWeaverBtn" class="primary-btn" data-i18n="admin.weaver.save">Save Weaver</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- 2. Loom Config (now select + rate update + income_rate) -->
-        <div class="report-card" aria-labelledby="adminLoomHead">
-          <div id="adminLoomHead" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div>
-              <h3 style="margin:0;font-size:16px;font-weight:800" data-i18n="admin.loom.title">2. Loom Config</h3>
-              <div class="note" data-i18n="admin.loom.note">Select loom and update rate (old rate kept in history)</div>
-            </div>
-            <div id="adminLoomStatus" style="color:var(--muted);font-size:13px">Ready</div>
-          </div>
-
-          <form id="loomForm" aria-label="Loom Registration Form">
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <select id="loomSelect" class="input-field" aria-label="Select loom or create new">
-                <option value="">-- New Loom (register) --</option>
-              </select>
-              <input id="newLoomLabel" class="input-field" placeholder="If creating new, enter Loom Label (e.g. L-01)" aria-label="New loom label" />
-              <input id="loomRate" type="number" step="0.01" class="input-field" placeholder="Rate per Saree (₹)" aria-label="Loom rate" />
-              <input id="loomIncomeRate" type="number" step="0.01" class="input-field" placeholder="Income rate per Saree (₹) — used for Income table" aria-label="Income rate per saree" />
-              <button type="button" id="saveLoomBtn" class="primary-btn" data-i18n="admin.loom.save">Register / Update Loom</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- 3. Payment Entry (with mode) -->
-        <div class="report-card" aria-labelledby="adminPayoutHead">
-          <div id="adminPayoutHead" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <div>
-              <h3 style="margin:0;font-size:16px;font-weight:800" data-i18n="admin.payout.title">3. Payment Entry</h3>
-              <div class="note" data-i18n="admin.payout.note">Record payout to weaver</div>
-            </div>
-            <div id="adminPayoutStatus" style="color:var(--muted);font-size:13px">Ready</div>
-          </div>
-
-          <form id="payoutForm" aria-label="Payout Form">
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <input id="payoutDate" type="date" class="input-field" value="" aria-label="Payout date" />
-              <select id="payoutWeaverSelect" class="input-field" aria-label="Choose weaver for payout"><option value="">-- Choose Weaver --</option></select>
-              <input id="payoutAmount" type="number" step="0.01" class="input-field" placeholder="Amount Paid (₹)" aria-label="Amount paid" />
-              <select id="payoutMode" class="input-field" aria-label="Payment mode">
-                <option value="Cash" data-i18n="payout.mode.cash">பணம்</option>
-                <option value="Advance Adjustment" data-i18n="payout.mode.advance">முன்பணம் பிடித்தம்</option>
-              </select>
-              <button type="button" id="submitPayoutBtn" class="primary-btn" data-i18n="admin.payout.save">Submit Payout</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <!-- Updated confirm modal (stacking + scroll fixed) -->
@@ -659,7 +459,7 @@
       <p class="text-sm text-slate-600 mt-2" id="modalBody" data-i18n="modal.body">இந்த உற்பத்தி பதிவை சேமிக்க விரும்புகிறீர்களா? ஏற்கனவே இருக்கும் ரெக்கார்ட்களை மாற்றுவோம் (Overwrite).</p>
       <div class="mt-3 flex justify-end gap-2">
         <button class="px-3 py-2 rounded border" onclick="closeModal()" data-i18n="modal.cancel">ரத்து செய்</button>
-        <button id="modalConfirmBtn" class="px-3 py-2 rounded bg-indigo-600 text-white" data-i18n="modal.confirm">உறுதிசெய్</button>
+        <button id="modalConfirmBtn" class="px-3 py-2 rounded bg-indigo-600 text-white" data-i18n="modal.confirm">உறுதிசெய்</button>
       </div>
     </div>
   </div>
@@ -689,10 +489,10 @@
         "brand.title": "EVJ Looms ERP",
         "brand.subtitle": "பதிவு மற்றும் அறிக்கைகள்",
         "nav.home": "முகப்பு",
-        "nav.work": "Work Entry",
-        "nav.bobin": "Bobbin Entry",
-        "nav.reports": "Reports",
-        "nav.admin": "Admin",
+        "nav.work": "உற்பத்தி பதிவு",
+        "nav.bobin": "பாபின் பதிவு",
+        "nav.reports": "அறிக்கைகள்",
+        "nav.admin": "மேலாளர்",
         "entry.title": "உற்பத்தி பதிவுகள்",
         "entry.note": "தினசரி பதிவு — தசம எண்கள் அனுமதி. சேமிப்பின் பின் படிகள் சுத்தமாகும்.",
         "entry.date": "தேதி",
@@ -998,7 +798,7 @@
         const { data: looms } = await _supabase.from('loom_master').select('*').order('loom_no');
 
         // Weaver selects
-        ['transWeaverSelect','analysisWeaverSelect','bobinWeaverSelect','payoutWeaverSelect','ieWeaverSelect'].forEach(id => {
+        ['transWeaverSelect','analysisWeaverSelect','bobinWeaverSelect'].forEach(id => {
           const sel = document.getElementById(id);
           if(!sel) return;
           const cur = sel.value || '';
@@ -1013,18 +813,7 @@
           try { sel.value = cur; } catch(e) {}
         });
 
-        // Admin payout weaver select (duplicate handled above)
-        const payoutSel = document.getElementById('payoutWeaverSelect');
-        if(payoutSel && users){
-          const cur = payoutSel.value || '';
-          payoutSel.innerHTML = `<option value="">${currentLang === 'ta' ? '-- தேர்வு செய்யவும் --' : '-- Choose Weaver --'}</option>`;
-          users.forEach(u => {
-            const opt = document.createElement('option'); opt.value = u.id; opt.textContent = u.full_name; payoutSel.appendChild(opt);
-          });
-          try { payoutSel.value = cur; } catch(e) {}
-        }
-
-        // Loom rows for entry/bobin: also expose income_rate on data attributes
+        // Loom rows for entry/bobin
         const container = document.getElementById('loomRowsContainer');
         if(container && looms){
           container.innerHTML = '';
@@ -1039,7 +828,7 @@
 
                 <div>
                   <label class="sr-only">${currentLang === 'ta' ? 'எண்' : 'Nos'} for ${displayLoomName}</label>
-                  <input type="number" inputmode="numeric" min="0" step="0.1" placeholder="${currentLang === 'ta' ? 'எண்கள் மட்டுமே' : 'Nos only'}" aria-label="Nos for ${displayLoomName}" class="qty-field input-field" data-rate="${l.saree_rate}" data-income-rate="${l.income_rate ?? ''}" data-id="${l.id}">
+                  <input type="number" inputmode="numeric" min="0" step="0.1" placeholder="${currentLang === 'ta' ? 'எண்கள் மட்டுமே' : 'Nos only'}" aria-label="Nos for ${displayLoomName}" class="qty-field input-field" data-rate="${l.saree_rate}" data-id="${l.id}">
                 </div>
 
                 <div>
@@ -1077,38 +866,19 @@
           });
         }
 
-        // Populate admin loom select (and also IE / expense loom selects)
+        // Populate admin loom select (if present - harmless if not)
         const loomSel = document.getElementById('loomSelect');
-        const ieLoomSel = document.getElementById('ieLoomSelect');
-        const expenseLoomSel = document.getElementById('expenseLoomSelect');
         if(loomSel && looms){
           const cur = loomSel.value || '';
           loomSel.innerHTML = `<option value="">-- New Loom (register) --</option>`;
           looms.forEach(l => {
             const opt = document.createElement('option');
             opt.value = l.id;
-            opt.textContent = `${l.loom_no} — ₹${l.saree_rate}${l.income_rate ? ' | Income ₹'+l.income_rate : ''}`;
+            opt.textContent = `${l.loom_no} — ₹${l.saree_rate}`;
             opt.dataset.rate = l.saree_rate;
-            opt.dataset.incomeRate = l.income_rate || '';
             loomSel.appendChild(opt);
           });
           try { loomSel.value = cur; } catch(e) {}
-        }
-        if(ieLoomSel && looms){
-          const cur = ieLoomSel.value || '';
-          ieLoomSel.innerHTML = `<option value="">-- All looms --</option>`;
-          looms.forEach(l => {
-            const opt = document.createElement('option'); opt.value = l.id; opt.textContent = l.loom_no; ieLoomSel.appendChild(opt);
-          });
-          try { ieLoomSel.value = cur; } catch(e) {}
-        }
-        if(expenseLoomSel && looms){
-          const cur = expenseLoomSel.value || '';
-          expenseLoomSel.innerHTML = `<option value="">-- Choose Loom --</option>`;
-          looms.forEach(l => {
-            const opt = document.createElement('option'); opt.value = l.id; opt.textContent = l.loom_no; expenseLoomSel.appendChild(opt);
-          });
-          try { expenseLoomSel.value = cur; } catch(e) {}
         }
 
         wireAutoFilters();
@@ -1157,7 +927,6 @@
           if(q > 0) {
             const id = el.dataset.id;
             const rate = parseFloat(el.dataset.rate || 0);
-            const incomeRate = parseFloat(el.dataset.incomeRate || rate);
             const row = el.closest('.loom-row');
             const trip = row.querySelector('.note-field')?.value || null;
             entries.push({
@@ -1178,6 +947,27 @@
           return;
         }
 
+        // Check for existing records to prevent overwrite
+        try {
+          const loomIds = entries.map(e => e.loom_id);
+          const { data: existing, error: checkErr } = await _supabase.from('daily_transactions')
+            .select('loom_id')
+            .eq('entry_date', date)
+            .eq('weaver_id', uid)
+            .in('loom_id', loomIds);
+          if(checkErr) throw checkErr;
+          if(existing && existing.length) {
+            // build friendly message (show first conflicting loom id)
+            const conflictIds = existing.map(r => r.loom_id).join(', ');
+            showToast(currentLang === 'ta' ? `பதிவு ஏற்கனவே உள்ளது (Overwrite அனுமதிக்கப்படவில்லை): Loom id(s) ${conflictIds}` : `Record(s) already exist — overwrite not allowed: Loom id(s) ${conflictIds}`, 4000);
+            return;
+          }
+        } catch(err) {
+          console.error(err);
+          showToast((currentLang === 'ta' ? 'சரிபார்ப்பு தோல்வி: ' : 'Check failed: ') + (err.message||err));
+          return;
+        }
+
         pendingEntries = entries;
         openModal({
           title: currentLang === 'ta' ? 'சேமிப்பை உறுதிசெய்' : 'Confirm Save',
@@ -1186,7 +976,7 @@
             setLoadingBtn(submitBtn, true, currentLang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...');
             try {
               const { error } = await _supabase.from('daily_transactions')
-                .upsert(pendingEntries, { onConflict: ['entry_date','weaver_id','loom_id'] });
+                .insert(pendingEntries);
               if(error) throw error;
               showToast(currentLang === 'ta' ? 'பதிவு சேமிக்கப்பட்டது' : 'Work Log Saved');
               document.getElementById('transStatus').innerText = currentLang === 'ta' ? 'சேமிக்கப்பட்டது' : 'Saved';
@@ -1195,7 +985,9 @@
               scheduleLoadReport(200);
             } catch(err) {
               console.error(err);
-              showToast((currentLang === 'ta' ? 'சேமிப்பு தோல்வி: ' : 'Save failed: ') + (err.message||err));
+              // if DB still complains about unique constraint, show a clear message
+              const msg = (err && err.message) ? err.message : String(err);
+              showToast((currentLang === 'ta' ? 'சேமிப்பு தோல்வி: ' : 'Save failed: ') + msg);
               clearForm();
             } finally {
               setLoadingBtn(submitBtn, false);
@@ -1241,6 +1033,26 @@
           return;
         }
 
+        // Check for existing records to prevent overwrite
+        try {
+          const loomIds = entries.map(e => e.loom_id);
+          const { data: existing, error: checkErr } = await _supabase.from('bobin_transactions')
+            .select('loom_id')
+            .eq('entry_date', date)
+            .eq('weaver_id', uid)
+            .in('loom_id', loomIds);
+          if(checkErr) throw checkErr;
+          if(existing && existing.length) {
+            const conflictIds = existing.map(r => r.loom_id).join(', ');
+            showToast(currentLang === 'ta' ? `பதிவு ஏற்கனவே உள்ளது (Overwrite அனுமதிக்கப்படவில்லை): Loom id(s) ${conflictIds}` : `Record(s) already exist — overwrite not allowed: Loom id(s) ${conflictIds}`, 4000);
+            return;
+          }
+        } catch(err) {
+          console.error(err);
+          showToast((currentLang === 'ta' ? 'சரிபார்ப்பு தோல்வி: ' : 'Check failed: ') + (err.message||err));
+          return;
+        }
+
         pendingEntries = entries;
         openModal({
           title: currentLang === 'ta' ? 'சேமிப்பை உறுதிசெய்' : 'Confirm Save',
@@ -1249,7 +1061,7 @@
             setLoadingBtn(submitBtn, true, currentLang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...');
             try {
               const { error } = await _supabase.from('bobin_transactions')
-                .upsert(pendingEntries, { onConflict: ['entry_date','weaver_id','loom_id'] });
+                .insert(pendingEntries);
               if(error) throw error;
               showToast(currentLang === 'ta' ? 'பாபின் பதிவு சேமிக்கப்பட்டது' : 'Bobbin Log Saved');
               document.getElementById('bobinStatus').innerText = currentLang === 'ta' ? 'சேமிக்கப்பட்டது' : 'Saved';
@@ -1267,141 +1079,6 @@
           }
         });
       });
-    })();
-
-    (function wireAdmin() {
-      const saveWeaverBtn = document.getElementById('saveWeaverBtn');
-      const saveLoomBtn = document.getElementById('saveLoomBtn');
-      const submitPayoutBtn = document.getElementById('submitPayoutBtn');
-      const loomSelect = document.getElementById('loomSelect');
-      const newLoomLabel = document.getElementById('newLoomLabel');
-
-      // When loom selection changes, populate rate input if existing
-      if(loomSelect) {
-        loomSelect.addEventListener('change', () => {
-          const selected = loomSelect.selectedOptions[0];
-          const rateInput = document.getElementById('loomRate');
-          const incomeRateInput = document.getElementById('loomIncomeRate');
-          if(!selected || !selected.value) {
-            // new loom selected
-            rateInput.value = '';
-            incomeRateInput.value = '';
-            newLoomLabel.style.display = 'block';
-          } else {
-            newLoomLabel.style.display = 'none';
-            const r = selected.dataset.rate || '';
-            const ir = selected.dataset.incomeRate || '';
-            rateInput.value = r;
-            incomeRateInput.value = ir;
-          }
-        });
-      }
-
-      if(saveWeaverBtn) {
-        saveWeaverBtn.addEventListener('click', async () => {
-          const username = document.getElementById('weaverUsername').value.trim();
-          const fullName = document.getElementById('weaverFullName').value.trim();
-          const isAdmin = document.getElementById('weaverIsAdmin').checked;
-
-          if(!username || !fullName) {
-            showToast(currentLang === 'ta' ? 'தயவுசெய்து அனைத்து புலங்களையும் நிரப்பவும்' : 'Please fill required fields');
-            return;
-          }
-          setLoadingBtn(saveWeaverBtn, true, currentLang === 'ta' ? 'சேமிக்க...' : 'Saving...');
-          try {
-            const { error } = await _supabase.from('user_master').insert([{ username, full_name: fullName, is_admin: isAdmin }]);
-            if(error) throw error;
-            showToast(currentLang === 'ta' ? 'நெசவாளர் சேர்க்கப்பட்டது' : 'Weaver added');
-            document.getElementById('adminWeaverStatus').innerText = currentLang === 'ta' ? 'சேமிக்கப்பட்டது' : 'Saved';
-            document.getElementById('weaverUsername').value = '';
-            document.getElementById('weaverFullName').value = '';
-            document.getElementById('weaverIsAdmin').checked = false;
-            await refreshAppStates();
-            scheduleLoadReport(200); // ensure reports reflect new user
-          } catch(err) {
-            console.error(err);
-            showToast((currentLang === 'ta' ? 'சேமிப்பு தோல்வி: ' : 'Save failed: ') + (err.message || err));
-          } finally {
-            setLoadingBtn(saveWeaverBtn, false);
-          }
-        });
-      }
-
-      if(saveLoomBtn) {
-        saveLoomBtn.addEventListener('click', async () => {
-          const selectedLoomId = document.getElementById('loomSelect').value;
-          const labelForNew = document.getElementById('newLoomLabel').value.trim();
-          const rate = parseFloat(document.getElementById('loomRate').value || 0);
-          const incomeRate = parseFloat(document.getElementById('loomIncomeRate').value || 0);
-          if(!selectedLoomId && !labelForNew) {
-            showToast(currentLang === 'ta' ? 'தயவுசெய்து தறி பெயரை அல்லது ஒன்றை தெரிவுசெய்க' : 'Please provide a loom label or select existing loom');
-            return;
-          }
-          if(!rate || rate <= 0) {
-            showToast(currentLang === 'ta' ? 'தயவுசெய்து சரியான விகிதம் உள்ளிடவும்' : 'Enter a valid rate');
-            return;
-          }
-          setLoadingBtn(saveLoomBtn, true, currentLang === 'ta' ? 'சேமிக்க...' : 'Saving...');
-          try {
-            if(selectedLoomId) {
-              // Update rate and income_rate (new column) and rely on DB trigger to record history (loom_rate_history)
-              const { error } = await _supabase.from('loom_master').update({ saree_rate: rate, income_rate: incomeRate || null }).eq('id', selectedLoomId);
-              if(error) throw error;
-              showToast(currentLang === 'ta' ? 'தறி விகிதம் புதுப்பிக்கப்பட்டது' : 'Loom rate updated');
-            } else {
-              const { error } = await _supabase.from('loom_master').insert([{ loom_no: labelForNew, saree_rate: rate, income_rate: incomeRate || null }]);
-              if(error) throw error;
-              showToast(currentLang === 'ta' ? 'புதிய தறி சேர்க்கப்பட்டது' : 'New loom added');
-            }
-            document.getElementById('loomSelect').value = '';
-            document.getElementById('newLoomLabel').value = '';
-            document.getElementById('loomRate').value = '';
-            document.getElementById('loomIncomeRate').value = '';
-            document.getElementById('adminLoomStatus').innerText = currentLang === 'ta' ? 'சேமிக்கப்பட்டது' : 'Saved';
-            await refreshAppStates();
-            scheduleLoadReport(200);
-          } catch(err) {
-            console.error(err);
-            showToast((currentLang === 'ta' ? 'சேமிப்பு தோல்வி: ' : 'Save failed: ') + (err.message || err));
-          } finally {
-            setLoadingBtn(saveLoomBtn, false);
-          }
-        });
-      }
-
-      if(submitPayoutBtn) {
-        submitPayoutBtn.addEventListener('click', async () => {
-          const date = document.getElementById('payoutDate').value;
-          const uid = document.getElementById('payoutWeaverSelect').value;
-          const amt = parseFloat(document.getElementById('payoutAmount').value || 0);
-          const mode = document.getElementById('payoutMode').value || 'Cash';
-          if(!date || !uid || !amt || amt <= 0) {
-            showToast(currentLang === 'ta' ? 'தயவுசெய்து சரியான தேதி, நெசவாளர் மற்றும் தொகையை உள்ளிடவும்' : 'Please enter valid date, weaver and amount');
-            return;
-          }
-          setLoadingBtn(submitPayoutBtn, true, currentLang === 'ta' ? 'சேமிக்க...' : 'Saving...');
-          try {
-            const { data, error } = await _supabase.from('payout_transactions').insert([{ payout_date: date, weaver_id: uid, amount_paid: amt, payment_mode: mode }]).select().single();
-            if(error) throw error;
-            showToast(currentLang === 'ta' ? 'கொடுப்பனவு பதிவேட்டப்பட்டது' : 'Payout recorded');
-            document.getElementById('payoutDate').value = new Date().toISOString().slice(0,10);
-            document.getElementById('payoutWeaverSelect').value = '';
-            document.getElementById('payoutAmount').value = '';
-            document.getElementById('payoutMode').value = 'Cash';
-            document.getElementById('adminPayoutStatus').innerText = currentLang === 'ta' ? 'சேமிக்கப்பட்டது' : 'Saved';
-            await refreshAppStates();
-            scheduleLoadReport(200); // update reports to reflect payout
-
-            // NOTE: Receipt auto-generation/auto-print has been removed per request.
-            // To generate a receipt manually call generatePayoutReceipt(...) if needed.
-          } catch(err) {
-            console.error(err);
-            showToast((currentLang === 'ta' ? 'சேமிப்பு தோல்வி: ' : 'Save failed: ') + (err.message || err));
-          } finally {
-            setLoadingBtn(submitPayoutBtn, false);
-          }
-        });
-      }
     })();
 
     // FILTER helpers (was missing previously) - fixes filters not working
@@ -1422,26 +1099,6 @@
         end.value = '';
       }
       scheduleLoadReport(50);
-    }
-
-    // IE range setter
-    function setIERange(range) {
-      const start = document.getElementById('ieStartDate');
-      const end = document.getElementById('ieEndDate');
-      if(range === 'today') {
-        const d = isoDate(new Date());
-        start.value = d; end.value = d;
-      } else if(range === 'week') {
-        start.value = daysAgo(7);
-        end.value = isoDate(new Date());
-      } else if(range === 'month') {
-        start.value = startOfMonth();
-        end.value = isoDate(new Date());
-      } else if(range === 'all') {
-        start.value = '';
-        end.value = '';
-      }
-      scheduleLoadIEReport(50);
     }
 
     // REPORTS wiring
@@ -1468,15 +1125,6 @@
         el.oninput = () => scheduleLoadReport();
         // ensure keyboard Enter triggers reload
         el.onkeydown = (e) => { if(e.key === 'Enter') scheduleLoadReport(); };
-      });
-
-      // IE filters
-      ['ieWeaverSelect','ieLoomSelect','ieStartDate','ieEndDate'].forEach(id => {
-        const el = document.getElementById(id);
-        if(!el) return;
-        el.onchange = () => scheduleLoadIEReport();
-        el.oninput = () => scheduleLoadIEReport();
-        el.onkeydown = (e) => { if(e.key === 'Enter') scheduleLoadIEReport(); };
       });
 
       // Ensure selects increase z-index while focused (helps on some browsers where dropdown gets clipped)
@@ -1564,8 +1212,7 @@
       const titleMap = {
         ledger: currentLang === 'ta' ? 'நெசவாளர் கணக்கு (Ledger)' : 'Weaver Account Ledger',
         production: currentLang === 'ta' ? 'உற்பத்தி விவரம்' : 'Production Details',
-        payouts: currentLang === 'ta' ? 'கட்டண வரலாறு' : 'Payment History',
-        income_expense: currentLang === 'ta' ? 'வ��ுமானம் மற்றும் செலவுகள்' : 'Income & Expenses'
+        payouts: currentLang === 'ta' ? 'கட்டண வரலாறு' : 'Payment History'
       };
       document.getElementById('reportTitleName').innerText = titleMap[type] || (currentLang === 'ta' ? 'அறிக்கை' : 'Report');
 
@@ -1586,7 +1233,7 @@
       }
 
       try {
-        let wQ = _supabase.from('daily_transactions').select('*, loom_master(loom_no, saree_rate, income_rate)').eq('weaver_id', uid);
+        let wQ = _supabase.from('daily_transactions').select('*, loom_master(loom_no, saree_rate)').eq('weaver_id', uid);
         let bQ = _supabase.from('bobin_transactions').select('*, loom_master(loom_no, saree_rate)').eq('weaver_id', uid);
         let pQ = _supabase.from('payout_transactions').select('*').eq('weaver_id', uid);
         if(start) { wQ = wQ.gte('entry_date', start); bQ = bQ.gte('entry_date', start); pQ = pQ.gte('payout_date', start); }
@@ -1613,7 +1260,7 @@
 
         const weaverSelect = document.getElementById('analysisWeaverSelect');
         const userName = (weaverSelect && weaverSelect.selectedOptions && weaverSelect.selectedOptions[0]) ? weaverSelect.selectedOptions[0].text.trim() : '';
-        document.getElementById('reportUserName').innerText = userName ? (currentLang === 'ta' ? `நெசவாளர்: ${userName}` : `Weaver: ${userName}`) : '';
+        document.getElementById('reportUserName').innerText = userName ? (currentLang === 'ta' ? `நெசவகர்: ${userName}` : `Weaver: ${userName}`) : '';
 
         if(type === 'production') {
           const head = [ 
@@ -1730,52 +1377,6 @@
           return;
         }
 
-        // if income_expense selected from the main reports pane, fetch aggregated income/expense for the selected weaver
-        if(type === 'income_expense') {
-          // we'll query income_transactions and expense_transactions; income table is expected to be sync'd via trigger or manual population (see SQL provided)
-          const incomeQ = _supabase.from('income_transactions').select('*, loom_master(loom_no)').eq('weaver_id', uid);
-          const expenseQ = _supabase.from('expense_transactions').select('*, loom_master(loom_no)');
-          if(start) { incomeQ.gte('income_date', start); expenseQ.gte('expense_date', start); }
-          if(end) { incomeQ.lte('income_date', end); expenseQ.lte('expense_date', end); }
-
-          const [incRes, expRes] = await Promise.all([incomeQ, expenseQ]);
-          const incomes = incRes.data || [];
-          const expenses = expRes.data || [];
-
-          // aggregate into rows: date, loom, income, expense, net
-          const map = {}; // key = date|loom
-          incomes.forEach(i => {
-            const date = formatDateDisplay(i.income_date);
-            const loom = i.loom_master?.loom_no ? String(i.loom_master.loom_no).replace(/loom/ig, getLoomLabel()) : (i.loom_id || '-');
-            const key = `${date}|${loom}`;
-            map[key] = map[key] || { date, loom, income:0, expense:0 };
-            map[key].income += parseFloat(i.amount || 0);
-          });
-          expenses.forEach(e => {
-            const date = formatDateDisplay(e.expense_date);
-            const loom = e.loom_master?.loom_no ? String(e.loom_master.loom_no).replace(/loom/ig, getLoomLabel()) : (e.loom_id || '-');
-            const key = `${date}|${loom}`;
-            map[key] = map[key] || { date, loom, income:0, expense:0 };
-            map[key].expense += parseFloat(e.amount || 0);
-          });
-
-          const rows = Object.values(map).sort((a,b) => b.date.localeCompare(a.date)).map(r => {
-            const net = r.income - r.expense;
-            return [ r.date, r.loom, fmtCurrency(r.income), fmtCurrency(r.expense), fmtCurrency(net) ];
-          });
-
-          // KPIs
-          const totalIncome = Object.values(map).reduce((s,v)=>s + (v.income||0),0);
-          const totalExpense = Object.values(map).reduce((s,v)=>s + (v.expense||0),0);
-          document.getElementById('statEarned').innerText = fmtCurrency(totalIncome);
-          document.getElementById('statPaid').innerText = fmtCurrency(totalExpense);
-          document.getElementById('statBalance').innerText = fmtCurrency(totalIncome - totalExpense);
-
-          const head = [ currentLang === 'ta' ? 'தேதி' : 'Date', currentLang === 'ta' ? 'தறி' : 'Loom', 'Income', 'Expense', 'Net' ];
-          postProcessReport(head, rows);
-          return;
-        }
-
       } catch (err) {
         console.error(err);
         showToast((currentLang === 'ta' ? 'அறிக்கை ஏற்றல் தோல்வி: ' : 'Report load failed: ') + (err.message||err));
@@ -1824,7 +1425,7 @@
       headCells.forEach((h, i) => {
         if (/note/.test(h)) return;
         if (/balance/.test(h)) return;
-        if (/amount|received|earned|saree|total|income|expense|net/.test(h)) numericIdxs.push(i);
+        if (/amount|received|earned|saree|total/.test(h)) numericIdxs.push(i);
       });
       numericIdxs = Array.from(new Set(numericIdxs)).sort((a,b)=>a-b);
 
@@ -1919,7 +1520,7 @@
       lower.forEach((h, i) => {
         if (/note/.test(h)) return;
         if (/balance/.test(h)) return;
-        if (/amount|received|earned|saree|total|income|expense|net/.test(h)) numericIdxs.push(i);
+        if (/amount|received|earned|saree|total/.test(h)) numericIdxs.push(i);
       });
       return Array.from(new Set(numericIdxs)).sort((a,b)=>a-b);
     }
@@ -2054,7 +1655,7 @@
       headCells.forEach((h, i) => {
         if (/note/.test(h)) return;
         if (/balance/.test(h)) return;
-        if (/amount|received|earned|saree|total|income|expense|net/.test(h)) numericIdxs.push(i);
+        if (/amount|received|earned|saree|total/.test(h)) numericIdxs.push(i);
       });
       numericIdxs = Array.from(new Set(numericIdxs)).sort((a,b)=>a-b);
 
@@ -2149,202 +1750,6 @@
     }
 
     // --------------------------
-    // INCOME & EXPENSE REPORT FUNCTIONS
-    // --------------------------
-    let ieRows = [];
-    let ieFiltered = [];
-    let iePage = 1;
-    let iePageSize = 10;
-
-    function scheduleLoadIEReport(wait = 300) {
-      if(window._ieDebounce) clearTimeout(window._ieDebounce);
-      window._ieDebounce = setTimeout(() => {
-        iePage = 1;
-        loadIEReport();
-      }, wait);
-    }
-
-    async function loadIEReport() {
-      const weaver = document.getElementById('ieWeaverSelect')?.value;
-      const loom = document.getElementById('ieLoomSelect')?.value;
-      const start = document.getElementById('ieStartDate')?.value;
-      const end = document.getElementById('ieEndDate')?.value;
-
-      document.getElementById('ieHead').innerHTML = '';
-      document.getElementById('ieBody').innerHTML = '';
-      document.getElementById('ieRowsSummary').innerText = 'Loading...';
-      document.getElementById('ieRange').innerText = (start || end) ? `${start || '...'} to ${end || '...'}` : 'Full Period';
-
-      // Query income and expenses; income_transactions expected to be present (populated via trigger or manual job)
-      try {
-        let incQ = _supabase.from('income_transactions').select('*, loom_master(loom_no)'); // we expect loom_master relation
-        let expQ = _supabase.from('expense_transactions').select('*, loom_master(loom_no)');
-
-        if(weaver) incQ = incQ.eq('weaver_id', weaver);
-        if(start) incQ = incQ.gte('income_date', start);
-        if(end) incQ = incQ.lte('income_date', end);
-
-        if(loom) expQ = expQ.eq('loom_id', loom);
-        if(start) expQ = expQ.gte('expense_date', start);
-        if(end) expQ = expQ.lte('expense_date', end);
-
-        // If both filters applied, we still fetch both sets for aggregation
-        const [incRes, expRes] = await Promise.all([incQ, expQ]);
-        const incomes = incRes.data || [];
-        const expenses = expRes.data || [];
-
-        // Build map grouped by date & loom
-        const map = {};
-        incomes.forEach(i => {
-          const date = formatDateDisplay(i.income_date);
-          const loomName = i.loom_master?.loom_no ? String(i.loom_master.loom_no).replace(/loom/ig, getLoomLabel()) : (i.loom_id || '-');
-          const key = `${date}|${loomName}`;
-          map[key] = map[key] || { date, loom: loomName, income:0, expense:0 };
-          map[key].income += parseFloat(i.amount || 0);
-        });
-        expenses.forEach(e => {
-          const date = formatDateDisplay(e.expense_date);
-          const loomName = e.loom_master?.loom_no ? String(e.loom_master.loom_no).replace(/loom/ig, getLoomLabel()) : (e.loom_id || '-');
-          const key = `${date}|${loomName}`;
-          map[key] = map[key] || { date, loom: loomName, income:0, expense:0 };
-          map[key].expense += parseFloat(e.amount || 0);
-        });
-
-        const rows = Object.values(map).sort((a,b) => b.date.localeCompare(a.date)).map(r => [ r.date, r.loom, fmtCurrency(r.income), fmtCurrency(r.expense), fmtCurrency(r.income - r.expense) ]);
-        ieRows = rows;
-        ieFiltered = ieRows.slice();
-        renderIETableWithPaging();
-
-        const totalIncome = Object.values(map).reduce((s,v)=>s + (v.income||0),0);
-        const totalExpense = Object.values(map).reduce((s,v)=>s + (v.expense||0),0);
-        document.getElementById('ieTotalIncome').innerText = fmtCurrency(totalIncome);
-        document.getElementById('ieTotalExpenses').innerText = fmtCurrency(totalExpense);
-        document.getElementById('ieNet').innerText = fmtCurrency(totalIncome - totalExpense);
-
-        document.getElementById('ieRowsSummary').innerText = `${ieFiltered.length} rows`;
-      } catch(err) {
-        console.error(err);
-        showToast('IE report load failed: ' + (err.message || err));
-        document.getElementById('ieRowsSummary').innerText = 'Failed';
-      }
-    }
-
-    function renderIETableWithPaging() {
-      const total = ieFiltered.length;
-      const pages = Math.max(1, Math.ceil(total / iePageSize));
-      if(iePage > pages) iePage = pages;
-      const startIdx = (iePage - 1) * iePageSize;
-      const pageRows = ieFiltered.slice(startIdx, startIdx + iePageSize);
-
-      const head = [ 'Date', getLoomLabel(), 'Income', 'Expense', 'Net' ];
-      document.getElementById('ieHead').innerHTML = `<tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>`;
-      const body = document.getElementById('ieBody');
-      body.innerHTML = '';
-      pageRows.forEach(row => {
-        const tr = document.createElement('tr');
-        row.forEach(cell => {
-          const td = document.createElement('td'); td.innerText = cell;
-          if(/^[₹]|^\d+(?:\.\d+)?$/.test(String(cell).trim())) td.className = 'text-right-num';
-          tr.appendChild(td);
-        });
-        body.appendChild(tr);
-      });
-
-      // totals
-      const totalIncome = ieFiltered.reduce((s,r) => s + (parseFloat(String(r[2]).replace(/[₹,]/g,'')) || 0), 0);
-      const totalExpense = ieFiltered.reduce((s,r) => s + (parseFloat(String(r[3]).replace(/[₹,]/g,'')) || 0), 0);
-      const tr = document.createElement('tr'); tr.className = 'totals-row';
-      const tds = [ (i18n[currentLang]['receipt.totallabel'] || 'Totals'), '', fmtCurrency(totalIncome), fmtCurrency(totalExpense), fmtCurrency(totalIncome - totalExpense) ];
-      tds.forEach((c,i) => {
-        const td = document.createElement('td'); td.innerText = c;
-        if(i>=2) td.className = 'text-right-num';
-        tr.appendChild(td);
-      });
-      body.appendChild(tr);
-
-      // pagination
-      const container = document.getElementById('iePagination');
-      container.innerHTML = '';
-      const createBtn = (text, disabled, onClick) => {
-        const btn = document.createElement('button');
-        btn.className = 'preset-btn';
-        btn.innerText = text;
-        btn.disabled = !!disabled;
-        btn.onclick = onClick;
-        if(disabled) btn.style.opacity = '0.6';
-        return btn;
-      };
-      container.appendChild(createBtn('« Prev', iePage === 1, () => { if(iePage>1){ iePage--; renderIETableWithPaging(); }}));
-      const delta = 2;
-      const start = Math.max(1, iePage - delta);
-      const end = Math.min(pages, iePage + delta);
-      for(let i=start;i<=end;i++){
-        const btn = createBtn(i, false, ()=>{ iePage = i; renderIETableWithPaging(); });
-        if(i === iePage) { btn.style.background = 'var(--brand)'; btn.style.color = '#fff'; btn.style.borderColor = 'transparent'; }
-        container.appendChild(btn);
-      }
-      container.appendChild(createBtn('Next »', iePage === pages, () => { if(iePage < pages){ iePage++; renderIETableWithPaging(); }}));
-      document.getElementById('iePageInfo').innerText = `Page ${iePage} of ${pages}`;
-    }
-
-    async function refreshIEReport() {
-      showToast('Refreshing IE report...');
-      await refreshAppStates();
-      scheduleLoadIEReport(80);
-    }
-
-    document.getElementById('saveExpenseBtn')?.addEventListener('click', async () => {
-      const date = document.getElementById('expenseDate').value;
-      const loomId = document.getElementById('expenseLoomSelect').value;
-      const amt = parseFloat(document.getElementById('expenseAmount').value || 0);
-      const note = document.getElementById('expenseNote').value || '';
-      if(!date || !loomId || !amt || amt <= 0) { showToast('Please fill date, loom and amount'); return; }
-      try {
-        setLoadingBtn(document.getElementById('saveExpenseBtn'), true, 'Saving...');
-        const { error } = await _supabase.from('expense_transactions').insert([{ expense_date: date, loom_id: loomId, amount: amt, note }]);
-        if(error) throw error;
-        showToast('Expense saved');
-        document.getElementById('expenseDate').value = new Date().toISOString().slice(0,10);
-        document.getElementById('expenseLoomSelect').value = '';
-        document.getElementById('expenseAmount').value = '';
-        document.getElementById('expenseNote').value = '';
-        await refreshAppStates();
-        scheduleLoadIEReport(120);
-      } catch(err) {
-        console.error(err);
-        showToast('Save failed: ' + (err.message || err));
-      } finally {
-        setLoadingBtn(document.getElementById('saveExpenseBtn'), false);
-      }
-    });
-
-    // IE exports
-    function downloadIEPDF() {
-      const head = ['Date', getLoomLabel(), 'Income', 'Expense', 'Net'];
-      if(!ieFiltered || ieFiltered.length === 0) { showToast('No data to export'); return; }
-      // reuse jsPDF autoTable like other export; simple export of ieFiltered rows
-      const rows = ieFiltered.map(r => r.map(c => sanitizeForPdf(String(c))));
-      const totalsRow = [ i18n[currentLang]['receipt.totallabel'] || 'Totals', '', ieFiltered.reduce((s,r)=>s + (parseFloat(String(r[2]).replace(/[₹,]/g,''))||0),0), ieFiltered.reduce((s,r)=>s + (parseFloat(String(r[3]).replace(/[₹,]/g,''))||0),0), ieFiltered.reduce((s,r)=>s + (parseFloat(String(r[2]).replace(/[₹,]/g,''))||0) - (parseFloat(String(r[3]).replace(/[₹,]/g,''))||0),0) ];
-      rows.push(totalsRow.map(c => sanitizeForPdf(String(c))));
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-      doc.autoTable({ head: [head], body: rows, styles:{fontSize:9, cellPadding:6}, theme:'striped', headStyles:{fillColor:[241,245,249]} });
-      doc.save(`IE_Report_${new Date().toISOString().slice(0,10)}.pdf`);
-      showToast('IE PDF exported');
-    }
-
-    function downloadIECSV() {
-      if(!ieFiltered || ieFiltered.length === 0) { showToast('No data to export'); return; }
-      const head = ['Date', 'Loom', 'Income', 'Expense', 'Net'];
-      const rows = ieFiltered.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(','));
-      const csv = '\uFEFF' + head.join(',') + '\n' + rows.join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = `IE_Report_${new Date().toISOString().slice(0,10)}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-      showToast('IE CSV exported');
-    }
-
-    // --------------------------
     // Misc / UI utilities
     // --------------------------
     // Compact toggle
@@ -2370,7 +1775,7 @@
 
       if(btn) btn.classList.add('active');
       else {
-        const map = { transaction: 'tabEntryBtn', bobin: 'tabBobinBtn', insights: 'tabReportsBtn', admin: 'tabAdminBtn', incomeExpenses: 'tabIncomeExpBtn' };
+        const map = { transaction: 'tabEntryBtn', bobin: 'tabBobinBtn', insights: 'tabReportsBtn' };
         const navBtn = document.getElementById(map[id]);
         if(navBtn) navBtn.classList.add('active');
       }
@@ -2390,18 +1795,6 @@
         setAppTheme('work');
         document.getElementById('bobinDate').value = new Date().toISOString().split('T')[0];
         refreshAppStates();
-      } else if(id === 'admin') {
-        setAppTheme('work');
-        // ensure admin forms have defaults and selects populated
-        document.getElementById('payoutDate').value = new Date().toISOString().split('T')[0];
-        refreshAppStates();
-      } else if(id === 'incomeExpenses') {
-        setAppTheme('report');
-        // populate IE selects and run report
-        document.getElementById('expenseDate').value = new Date().toISOString().slice(0,10);
-        refreshAppStates().then(() => {
-          scheduleLoadIEReport(60);
-        });
       }
 
       syncMobileBarActive(id);
@@ -2418,11 +1811,6 @@
         const active = b.classList.contains('active');
         b.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
-      // also admin
-      const adminBtn = document.getElementById('tabAdminBtn');
-      if(adminBtn) adminBtn.setAttribute('aria-pressed', adminBtn.classList.contains('active') ? 'true' : 'false');
-      const ieBtn = document.getElementById('tabIncomeExpBtn');
-      if(ieBtn) ieBtn.setAttribute('aria-pressed', ieBtn.classList.contains('active') ? 'true' : 'false');
     }
 
     function syncMobileBarActive(sectionId) {
@@ -2431,8 +1819,6 @@
       if(sectionId === 'transaction') btns[0].classList.add('active');
       if(sectionId === 'bobin') btns[1].classList.add('active');
       if(sectionId === 'insights') btns[2].classList.add('active');
-      if(sectionId === 'admin') btns[3].classList.add('active');
-      if(sectionId === 'incomeExpenses') btns[4] && btns[4].classList.add('active');
     }
 
     // NAV compression on small screens when user scrolls
@@ -2471,7 +1857,6 @@
     window.addEventListener('load', () => {
       document.getElementById('manualDate').value = new Date().toISOString().split('T')[0];
       document.getElementById('bobinDate').value = new Date().toISOString().split('T')[0];
-      document.getElementById('payoutDate').value = new Date().toISOString().split('T')[0];
       _pageSize = 10;
       refreshAppStates().then(() => {
         wireAutoFilters();
