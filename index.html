@@ -1,0 +1,2496 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EVJ Looms | Entry & Reports</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --brand: #2563eb; /* blue highlight */
+      --muted: #64748b;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --input-bg: #fbfdff;
+      --input-border: #e6eefb;
+      --shadow-1: 0 10px 30px rgba(8,15,52,0.05);
+      --payment-red: #dc2626;
+      --outstanding-green: #059669;
+    }
+    html,body{height:100%}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:#0f172a;margin:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;box-sizing:border-box;}
+    *,*:before,*:after{box-sizing:inherit}
+
+/* NAV */
+    nav{position:sticky;top:0;z-index:60;background:white;border-bottom:1px solid rgba(226,232,240,1);transition:all .18s ease;}
+    .nav-inner{max-width:1200px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;}
+    .brand{display:flex;align-items:center;gap:10px;}
+    .brand .logo{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;background:#0f172a;}
+    .brand h1{margin:0;font-size:16px;font-weight:800;}
+    .brand p{Margin:0;font-size:12px;color:var(--muted);}
+
+    .nav-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+    .nav-pill{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;font-weight:700;color:#475569;background:rgba(247,250,252,1);border:1px solid rgba(226,232,240,1);transition:all .12s linear;cursor:pointer;position:relative;overflow:hidden;min-width:120px;justify-content:center;}
+    .nav-pill svg.icon{width:16px;height:16px;opacity:0.95;}
+    .nav-pill .pill-label{display:inline-block;white-space:nowrap;}
+    /* Active tab highlighted blue and stable size */
+    .nav-pill.active{color:#fff;background:linear-gradient(90deg,var(--brand), color-mix(in srgb,var(--brand) 85%,black 6%));box-shadow:0 8px 20px rgba(37,99,235,0.12);border-color:transparent;}
+
+/* Translate button style */
+    #translateBtn { background:linear-gradient(90deg,#10b981,#06b6d4); color:#fff; border: none; padding:8px 12px; border-radius:10px; font-weight:800; display:inline-flex; align-items:center; gap:8px; }
+
+/* compressed nav on scroll for mobile: icons-only */
+    nav.nav-compressed .nav-inner{padding:6px 12px;}
+    nav.nav-compressed .nav-pill{padding:8px; min-width:44px;}
+    nav.nav-compressed .nav-pill .pill-label{display:none;}
+    nav.nav-compressed .nav-pill svg.icon{width:20px;height:20px;}
+    nav.nav-compressed .brand p{display:none;}
+
+    main{max-width:1200px;margin:20px auto;padding:0 20px 80px;}
+
+/* WORK ENTRY */
+    .production-card{max-width:900px;margin:0 auto;padding:20px;border-radius:12px;box-shadow:var(--shadow-1);border:1px solid rgba(226,232,240,0.95);background:var(--card);}
+    .production-card .header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+    .production-card h2{font-size:22px;margin:0;font-weight:800;line-height:1.05;}
+    .note{margin:6px 0 0;font-size:13px;color:var(--muted);}
+
+    .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;align-items:center;}
+    .meta-grid .meta{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.03em;}
+    .input-field{width:100%;background:var(--input-bg);border:1px solid var(--input-border);padding:9px 10px;border-radius:10px;font-size:14px;transition:box-shadow .12s,border-color .12s,transform .08s;}
+    .input-field:focus{box-shadow:0 8px 30px rgba(79,70,229,0.06);border-color:var(--brand);transform:none;outline:none;}
+
+    .loom-list{margin-top:14px;border-top:1px solid rgba(226,232,240,0.95);padding-top:14px;}
+    .loom-row{display:grid;grid-template-columns:150px 1fr 1.1fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(241,245,249,1);}
+    .loom-left{background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(226,232,240,1);border-radius:10px;padding:10px;text-align:center;box-shadow:0 6px 20px rgba(2,6,23,0.02);}
+    .loom-left .loom-name{font-weight:800;font-size:15px;}
+    .sr-only{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap;border:0;padding:0;margin:-1px;}
+
+/* card footer - not floating; normal flow - buttons legible */
+    .card-footer{display:flex;align-items:center;gap:10px;margin-top:14px;border-top:1px solid rgba(226,232,240,0.95);padding-top:12px;flex-wrap:wrap;position:relative;background:transparent;}
+    .primary-btn{background:linear-gradient(90deg,var(--brand), color-mix(in srgb,var(--brand) 85%,black 6%));color:white;padding:12px 18px;border-radius:12px;font-weight:900;box-shadow:0 8px 26px rgba(79,70,229,0.10);position:relative;overflow:hidden;font-size:16px;border:0;}
+    .secondary-btn{background:white;border:1px solid rgba(226,232,240,1);padding:10px 14px;border-radius:12px;font-weight:800;position:relative;overflow:hidden;font-size:15px;}
+    .hint{margin-top:8px;color:var(--muted);font-size:13px; width:100%;}
+
+/* REPORTS */
+    .reports-shell { display:grid; grid-template-columns: 320px 1fr; gap:20px; margin-top:18px; align-items:start; }
+    .reports-filters { padding:18px; border-radius:12px; background:var(--card); box-shadow:var(--shadow-1); border:1px solid rgba(226,232,240,0.95); position:relative; z-index:80; } /* z-index added to help dropdown visibility */
+    .reports-content { padding:0; }
+
+    .filters-section { margin-bottom:16px; }
+    .filters-section h4 { margin:0 0 10px; font-size:13px; color:#334155; font-weight:800; }
+    .filters-row { display:flex; gap:8px; margin-bottom:10px; align-items:center; }
+    .filters-presets { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .preset-btn { background:#fff; border:1px solid rgba(226,232,240,1); padding:8px 10px; border-radius:8px; font-size:13px; cursor:pointer; position:relative; overflow:hidden; }
+    .preset-btn:hover { box-shadow:0 8px 20px rgba(2,6,23,0.04); transform:translateY(-2px); }
+
+    .filters-row input[type="date"] {
+      min-width:150px;
+      padding:10px 12px;
+      font-size:14px;
+      border-radius:10px;
+      border:1px solid var(--input-border);
+      background:var(--input-bg);
+    }
+
+    .kpis { display:flex; gap:12px; margin-bottom:12px; }
+    .kpi { flex:1; padding:14px; border-radius:10px; background:var(--card); box-shadow:var(--shadow-1); border:1px solid rgba(226,232,240,0.95); text-align:center; }
+    .kpi.primary { background: var(--card); color:inherit; box-shadow:var(--shadow-1); }
+
+    .kpi .label { font-size:12px; color:var(--muted); text-transform:uppercase; font-weight:700; display:block; }
+    .kpi .value { margin-top:8px; font-weight:800; font-size:20px; display:block; }
+
+    .kpi .value.payment { color: var(--payment-red); }
+    .kpi .value.outstanding { color: var(--outstanding-green); }
+
+    .report-card { padding:14px; border-radius:12px; background:var(--card); box-shadow:var(--shadow-1); border:1px solid rgba(226,232,240,0.95); }
+    .report-card .card-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; }
+    .report-actions { display:flex; gap:8px; align-items:center; }
+
+    .report-table { width:100%; border-collapse:collapse; min-width:680px; }
+    .report-table thead th { position:sticky; top:0; background:#fff; z-index:20; padding:10px; font-size:12px; text-transform:uppercase; color:#475569; border-bottom:2px solid #eef2ff; text-align:center; }
+    .report-table tbody td { padding:10px; border-bottom:1px solid #f1f5f9; vertical-align: middle; font-size:14px; text-align:center; }
+    .report-table tfoot td { padding:10px; border-top:2px solid #eef2ff; }
+    .text-right-num { text-align:center; font-variant-numeric: tabular-nums; }
+    .totals-row { background:#fbfdff; font-weight:800; }
+
+    .content-controls { display:flex; gap:10px; align-items:center; margin-bottom:12px; justify-content:space-between; }
+
+/* Ensure native select dropdown text is always visible */
+    select, select option {
+      color: #0f172a !important;
+      background: #ffffff !important;
+    }
+    select:focus {
+      position: relative;
+      z-index: 9999;
+    }
+
+/* MOBILE: bottom fixed bar */
+    #mobileBar { display: none; position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.98); border-radius: 14px; box-shadow: 0 12px 30px rgba(2,6,23,0.12); padding: 8px; z-index: 140; gap:6px; align-items:center; justify-content:center; border:1px solid rgba(226,232,240,0.95); pointer-events:auto; }
+    #mobileBar button { background: transparent; border: none; padding: 6px 10px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--muted); font-weight:700; cursor:pointer; position:relative; overflow:hidden; }
+    #mobileBar button svg { width:18px; height:18px; }
+    #mobileBar .bar-label { font-size:11px; color:var(--muted); }
+    #mobileBar button.active { color: var(--brand); }
+
+    /* Small screen adjustments */
+    @media (max-width:980px){
+      .reports-shell { grid-template-columns: 1fr; }
+      .reports-filters { order:2; }
+      .reports-content { order:1; }
+      .loom-row{grid-template-columns:1fr;gap:8px;}
+      .meta-grid{grid-template-columns:1fr;}
+      main { padding:0 14px 140px; } /* increased bottom padding so content doesn't hide under fixed bars */
+      .nav-inner { padding:10px 12px; }
+      #mobileBar { display:flex; }
+      /* keep only translate in header, so hide other nav pills on small to reduce clutter but keep their active states consistent */
+      .nav-actions .nav-pill { display:none; }
+      /* still keep translate visible */
+      #translateBtn { display:inline-flex; }
+
+      /* make buttons comfortably tappable */
+      .card-footer { flex-direction:column; align-items:stretch; padding-bottom: 8px; }
+      .card-footer .primary-btn, .card-footer .secondary-btn { width:100%; display:block; text-align:center; }
+
+      /* move hint directly under buttons and ensure it spans width */
+      .card-footer .hint { margin-top:6px; text-align:left; }
+
+      /* ensure select overlays are visible above other layers */
+      .reports-filters, .report-card, .production-card { z-index: 80; position: relative; }
+    }
+
+    input:focus, select:focus, button:focus { outline: 3px solid rgba(37,99,235,0.10); outline-offset:2px; }
+    /* disable scale/transform on active to avoid size flicker */
+    .nav-pill:active, .primary-btn:active, .secondary-btn:active, .preset-btn:active { transform: none !important; }
+    .ripple { position:absolute; border-radius:50%; transform:scale(0); animation:ripple 600ms linear; background: rgba(15,23,42,0.12); pointer-events:none; }
+    @keyframes ripple { to { transform:scale(4); opacity:0; } }
+
+    /* --- Modal stacking + mobile scroll fix --- */
+    #confirmModal {
+      position: fixed;
+      inset: 0;
+      display: none; /* toggled via .flex/.hidden classes */
+      align-items: center;
+      justify-content: center;
+      z-index: 9999; /* well above mobileBar (140) */
+      -webkit-overflow-scrolling: touch;
+    }
+    #confirmModal.flex { display: flex; }
+    #confirmModal .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(2,6,23,0.6);
+      backdrop-filter: blur(2px);
+      z-index: 9998;
+    }
+    #confirmModal .card {
+      position: relative;
+      z-index: 10000;
+      width: 92%;
+      max-width: 420px;
+      max-height: calc(100vh - 40px); /* keep inside viewport on small screens */
+      overflow: auto;
+      box-shadow: 0 18px 60px rgba(2,6,23,0.28);
+    }
+    @media (max-width:480px) {
+      #confirmModal .card { width: 96%; max-width: 380px; padding: 12px; }
+    }
+  </style>
+</head>
+<body data-theme="work">
+
+  <nav id="topNav">
+    <div class="nav-inner">
+      <div class="brand">
+        <div class="logo">EVJ</div>
+        <div>
+          <h1 data-i18n="brand.title">EVJ <span style="color:var(--brand);">Looms ERP</span></h1>
+          <p data-i18n="brand.subtitle">Entry & Reports</p>
+        </div>
+      </div>
+
+      <div class="nav-actions" role="toolbar" aria-label="Main actions">
+        <!-- Tab pills - visible on desktop; compressed behavior keeps labels hidden on small screens -->
+        <button id="tabEntryBtn" class="nav-pill action-item" onclick="showTab('transaction', this)" aria-pressed="false" title="Work Entry">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="pill-label" data-i18n="nav.work">உற்பத்தி பதிவு (Work Entry)</span>
+        </button>
+
+        <button id="tabBobinBtn" class="nav-pill action-item" onclick="showTab('bobin', this)" aria-pressed="false" title="Bobbin Entry">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v6M12 15v6M3 12h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="pill-label" data-i18n="nav.bobin">பாபின் பதிவு (Bobbin)</span>
+        </button>
+
+        <button id="tabReportsBtn" class="nav-pill action-item" onclick="showTab('insights', this)" aria-pressed="false" title="Reports">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 13h4v6H3zM9 8h4v11H9zM15 3h4v16h-4z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="pill-label" data-i18n="nav.reports">அறிக்கைகள் (Reports)</span>
+        </button>
+
+        <!-- New income & expense tab -->
+        <button id="tabIncomeExpBtn" class="nav-pill action-item" onclick="showTab('incomeExpenses', this)" aria-pressed="false" title="Income & Expenses">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h9M12 3v9M21 21v-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="pill-label">Income & Expenses</span>
+        </button>
+
+        <!-- Admin nav pill (desktop visible) -->
+        <button id="tabAdminBtn" class="nav-pill action-item" onclick="showTab('admin', this)" aria-pressed="false" title="Admin">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zM3 21a9 9 0 0118 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="pill-label" data-i18n="nav.admin">மேலாளருக்கான உள்ளீடு (Admin)</span>
+        </button>
+
+        <!-- Translate button: only in header (desktop & mobile header). Removed translate from bottom tabs -->
+        <button id="translateBtn" title="Toggle language" onclick="toggleLanguage()" aria-label="Translate">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h7"></path><path d="M3 12h13"></path><path d="M3 19h7"></path><path d="M21 5v14"></path></svg>
+          <span id="translateLabel">தமிழ்</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div id="mobileBar" role="toolbar" aria-label="Mobile quick actions">
+    <!-- Mobile quick actions (no translate button here per request) -->
+    <button aria-label="Work Entry" onclick="showTab('transaction', document.getElementById('tabEntryBtn'))">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="bar-label" data-i18n="nav.work">உற்பத்தி</div>
+    </button>
+    <button aria-label="Bobbin Entry" onclick="showTab('bobin', document.getElementById('tabBobinBtn'))">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v6M12 15v6M3 12h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="bar-label" data-i18n="nav.bobin">பாபின்</div>
+    </button>
+    <button aria-label="Reports" onclick="showTab('insights', document.getElementById('tabReportsBtn'))">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 13h4v6H3zM9 8h4v11H9zM15 3h4v16h-4z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="bar-label" data-i18n="nav.reports">அறிக்கைகள்</div>
+    </button>
+
+    <!-- NEW: Admin quick action in mobile bottom bar -->
+    <button aria-label="Admin" onclick="showTab('admin', document.getElementById('tabAdminBtn'))">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zM3 21a9 9 0 0118 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="bar-label" data-i18n="nav.admin">மேலாளர்</div>
+    </button>
+
+    <!-- Mobile quick action: income & expenses -->
+    <button aria-label="Income & Expenses" onclick="showTab('incomeExpenses', document.getElementById('tabIncomeExpBtn'))">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12h9M12 3v9M21 21v-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="bar-label">Income</div>
+    </button>
+  </div>
+
+  <main>
+    <!-- Home removed per request - start directly with transaction tab -->
+
+    <section id="transaction" class="tab-content" aria-hidden="false">
+      <div class="production-card card">
+        <div class="header">
+          <div>
+            <h2 data-i18n="entry.title">உற்பத்தி பதிவுகள்</h2>
+            <p class="note" data-i18n="entry.note">தினசரி பதிவு — தசம எண்களை உள்ளிடலாம். சேமிப்பின் பின் படிகள் சுத்தமாகும்.</p>
+          </div>
+          <div style="text-align:right;">
+            <div id="transStatus" class="text-sm" style="color:var(--muted)">Ready</div>
+          </div>
+        </div>
+
+        <form id="transForm" class="mt-3" aria-label="Production Log form">
+          <div class="meta-grid">
+            <div>
+              <div class="meta" data-i18n="entry.date">தேதி (Date)</div>
+              <input type="date" id="manualDate" class="input-field" required aria-label="Manual date" />
+            </div>
+            <div>
+              <div class="meta" data-i18n="entry.weaver">நெசவாள் (Weaver)</div>
+              <select id="transWeaverSelect" class="input-field" required aria-label="Select weaver"></select>
+            </div>
+          </div>
+
+          <div id="loomRowsContainer" class="loom-list" aria-live="polite"></div>
+
+          <div class="card-footer">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;width:100%;">
+              <button id="submitBtn" class="primary-btn" type="submit" data-i18n="entry.save">பதிவு செய் (Save)</button>
+              <button type="button" onclick="clearForm()" class="secondary-btn" data-i18n="entry.clear">தோழ்வு (Clear)</button>
+            </div>
+            <!-- Tip moved below buttons as requested -->
+            <div class="hint" data-i18n="entry.hint">குறிப்பு: இன்று உற்பத்தி செய்த தறி-களை மட்டும் உள்ளிடுங்கள்.</div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="bobin" class="tab-content hidden" aria-hidden="true">
+      <div class="production-card card">
+        <div class="header">
+          <div>
+            <h2 data-i18n="bobin.title">பாபின் பதிவு</h2>
+            <p class="note" data-i18n="bobin.note">தறி-விற்கு சம்பாதித்த தொகையை இங்கு பதிவுசெய்து உங்கள் வருவாயில் சேர்க்குங்கள்.</p>
+          </div>
+          <div style="text-align:right;">
+            <div id="bobinStatus" class="text-sm" style="color:var(--muted)">Ready</div>
+          </div>
+        </div>
+
+        <form id="bobinForm" class="mt-3" aria-label="Bobbin Log form">
+          <div class="meta-grid">
+            <div>
+              <div class="meta" data-i18n="bobin.date">தேதி (Date)</div>
+              <input type="date" id="bobinDate" class="input-field" required aria-label="Bobbin date" />
+            </div>
+            <div>
+              <div class="meta" data-i18n="bobin.weaver">நெசவாளர் (Weaver)</div>
+              <select id="bobinWeaverSelect" class="input-field" required aria-label="Select weaver for bobbin"></select>
+            </div>
+          </div>
+
+          <div id="bobinRowsContainer" class="loom-list" aria-live="polite"></div>
+
+          <div class="card-footer">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;width:100%;">
+              <button id="bobinSubmitBtn" class="primary-btn" type="submit" data-i18n="bobin.save">பதிவு செய் (Save)</button>
+              <button type="button" onclick="clearBobinForm()" class="secondary-btn" data-i18n="bobin.clear">பாதுகாப்பு (Clear)</button>
+            </div>
+            <!-- Tip moved below buttons as requested -->
+            <div class="hint" data-i18n="bobin.hint">குறிப்பு: இன்று பாபின் பணம் சம்பாதித்த தறி-களை மட்டுமே உள்ளிடுங்கள்.</div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="insights" class="tab-content hidden" aria-hidden="true">
+      <div class="reports-shell">
+        <aside class="reports-filters" aria-label="Report filters">
+          <div class="filters-section">
+            <h4 data-i18n="reports.filter.weaver">நெசவாளர் தேர்வு (Choose Weaver)</h4>
+            <select id="analysisWeaverSelect" class="input-field" aria-label="Filter by weaver">
+              <option value="">-- --</option>
+            </select>
+          </div>
+
+          <div class="filters-section">
+            <h4 data-i18n="reports.filter.view">அறிக்கை வகை (Report View)</h4>
+            <select id="reportType" class="input-field" aria-label="Select report type">
+              <option value="ledger" data-i18n="reports.type.ledger">நெசவாளர் கணக்கு (Ledger)</option>
+              <option value="production" data-i18n="reports.type.production">உற்பத்தி விவரம் (Production)</option>
+              <option value="payouts" data-i18n="reports.type.payouts">கட்டண வரலாறு (Payouts)</option>
+              <option value="income_expense">Income & Expenses</option>
+            </select>
+          </div>
+
+          <div class="filters-section">
+            <h4 data-i18n="reports.filter.date">கால வரம்பு (Date Range)</h4>
+            <div class="filters-row">
+              <input type="date" id="startDate" class="input-field" aria-label="Start date" />
+              <input type="date" id="endDate" class="input-field" aria-label="End date" />
+            </div>
+            <div class="filters-presets">
+              <button class="preset-btn" onclick="setRange('today')" data-i18n="presets.today">இன்று</button>
+              <button class="preset-btn" onclick="setRange('week')" data-i18n="presets.week">இந்த வாரம்</button>
+              <button class="preset-btn" onclick="setRange('month')" data-i18n="presets.month">இந்த மாதம்</button>
+              <button class="preset-btn" onclick="setRange('all')" data-i18n="presets.all">அனைத்து நாட்கள்</button>
+            </div>
+          </div>
+
+          <div class="filters-section">
+            <h4 data-i18n="reports.quick">விரைவு செயல்கள் (Quick Actions)</h4>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+              <button class="preset-btn" onclick="downloadPDF()" data-i18n="reports.pdf">PDF ஏற்றுமதி (Full range)</button>
+              <button class="preset-btn" onclick="downloadExcel()" data-i18n="reports.excel">Excel ஏற்றுமதி (Full range)</button>
+              <button class="preset-btn" onclick="window.print()" data-i18n="reports.print">அச்சிடு</button>
+              <button class="preset-btn" id="toggleCompact" onclick="toggleCompact()" data-i18n="reports.compact">சுருக்கமான காட்சி</button>
+            </div>
+            <!-- Improvement: allow including the production summary in PDF export -->
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+              <input type="checkbox" id="includeSummary" />
+              <label for="includeSummary" style="font-size:13px;color:var(--muted)">Include Loom Summary (in PDF)</label>
+            </div>
+            <div style="margin-top:8px;font-size:12px;color:var(--muted)">
+              Export uses the full selected date range (all rows that match filters), not just the current page.
+            </div>
+          </div>
+
+          <div style="margin-top:8px;font-size:13px;color:var(--muted)">
+            <span data-i18n="reports.note">வடிகட்டிகள் தானாக பொருந்தும். Refresh க்கு பொத்தானை அழுத்தவும்.</span>
+          </div>
+        </aside>
+
+        <div class="reports-content">
+          <div class="kpis" role="region" aria-label="Key figures" style="margin-bottom:12px">
+            <div class="kpi">
+              <div class="label" data-i18n="kpi.earned">மொத்த கூலி</div>
+              <div id="statEarned" class="value">₹0</div>
+            </div>
+            <div class="kpi">
+              <div class="label" data-i18n="kpi.paid">கொடுத்தது</div>
+              <div id="statPaid" class="value payment">₹0</div>
+            </div>
+            <div class="kpi primary">
+              <div class="label" data-i18n="kpi.balance">மீதம்</div>
+              <div id="statBalance" class="value outstanding">₹0</div>
+            </div>
+          </div>
+
+          <div id="productionSummary" class="report-card production-summary" style="display:none;"></div>
+
+          <div class="report-card">
+            <div class="card-head">
+              <div>
+                <h3 id="reportTitleName" style="margin:0;font-size:16px;font-weight:800" data-i18n="reports.title">நெசவாளர் கணக்கு (Ledger)</h3>
+                <div id="reportUserName" style="color:var(--muted);font-size:13px;margin-top:4px"></div>
+                <div id="reportDateRange" style="color:var(--muted);font-size:13px;margin-top:4px">Full Period</div>
+              </div>
+
+              <div class="report-actions">
+                <button id="refreshIconBtn" class="preset-btn" title="Refresh" onclick="refreshReport()" aria-label="Refresh" data-i18n="reports.refresh">மீள்காட்சி</button>
+              </div>
+            </div>
+
+            <div class="content-controls">
+              <div class="controls-left"></div>
+              <div class="controls-right">
+                <div id="rowsSummary" style="color:var(--muted);font-size:13px" data-i18n="reports.nodata">தரவு இல்லை</div>
+              </div>
+            </div>
+
+            <div style="overflow-x:auto">
+              <table id="mainTable" class="report-table">
+                <thead id="rHead"></thead>
+                <tbody id="rBody"></tbody>
+              </table>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+              <div id="pagination" style="display:flex;gap:8px;align-items:center"></div>
+              <div style="color:var(--muted);font-size:13px" id="pageInfo"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- NEW: Income & Expenses Section -->
+    <section id="incomeExpenses" class="tab-content hidden" aria-hidden="true">
+      <div class="reports-shell">
+        <aside class="reports-filters" aria-label="Income & Expense filters">
+          <div class="filters-section">
+            <h4>Weaver / Loom</h4>
+            <select id="ieWeaverSelect" class="input-field" aria-label="Filter by weaver">
+              <option value="">-- --</option>
+            </select>
+            <select id="ieLoomSelect" class="input-field" aria-label="Filter by loom" style="margin-top:8px;">
+              <option value="">-- All looms --</option>
+            </select>
+          </div>
+
+          <div class="filters-section">
+            <h4>Date Range</h4>
+            <div class="filters-row">
+              <input type="date" id="ieStartDate" class="input-field" aria-label="Start date" />
+              <input type="date" id="ieEndDate" class="input-field" aria-label="End date" />
+            </div>
+            <div class="filters-presets">
+              <button class="preset-btn" onclick="setIERange('today')">Today</button>
+              <button class="preset-btn" onclick="setIERange('week')">This week</button>
+              <button class="preset-btn" onclick="setIERange('month')">This month</button>
+              <button class="preset-btn" onclick="setIERange('all')">All</button>
+            </div>
+          </div>
+
+          <div class="filters-section">
+            <h4>Quick Actions</h4>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="preset-btn" onclick="downloadIEPDF()">PDF</button>
+              <button class="preset-btn" onclick="downloadIECSV()">CSV</button>
+              <button class="preset-btn" onclick="refreshIEReport()">Refresh</button>
+            </div>
+          </div>
+
+          <div class="filters-section">
+            <h4>Add Expense (Admin quick)</h4>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <input type="date" id="expenseDate" class="input-field" value="" />
+              <select id="expenseLoomSelect" class="input-field"><option value="">-- Choose Loom --</option></select>
+              <input id="expenseAmount" type="number" step="0.01" class="input-field" placeholder="Amount (₹)" />
+              <input id="expenseNote" type="text" class="input-field" placeholder="Note (reason)" />
+              <button id="saveExpenseBtn" class="primary-btn" type="button">Save Expense</button>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:8px;">Expenses are stored per loom and appear in IE report.</div>
+          </div>
+        </aside>
+
+        <div class="reports-content">
+          <div class="kpis" role="region" aria-label="IE Key figures" style="margin-bottom:12px">
+            <div class="kpi">
+              <div class="label">Total Income</div>
+              <div id="ieTotalIncome" class="value">₹0</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Total Expenses</div>
+              <div id="ieTotalExpenses" class="value payment">₹0</div>
+            </div>
+            <div class="kpi primary">
+              <div class="label">Net</div>
+              <div id="ieNet" class="value outstanding">₹0</div>
+            </div>
+          </div>
+
+          <div class="report-card">
+            <div class="card-head">
+              <div>
+                <h3 style="margin:0;font-size:16px;font-weight:800">Income & Expense Report</h3>
+                <div id="ieRange" style="color:var(--muted);font-size:13px;margin-top:4px"></div>
+              </div>
+              <div class="report-actions">
+                <button class="preset-btn" onclick="refreshIEReport()">Refresh</button>
+              </div>
+            </div>
+
+            <div class="content-controls">
+              <div class="controls-left"></div>
+              <div class="controls-right">
+                <div id="ieRowsSummary" style="color:var(--muted);font-size:13px">No data</div>
+              </div>
+            </div>
+
+            <div style="overflow-x:auto">
+              <table id="ieTable" class="report-table">
+                <thead id="ieHead"></thead>
+                <tbody id="ieBody"></tbody>
+              </table>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+              <div id="iePagination" style="display:flex;gap:8px;align-items:center"></div>
+              <div style="color:var(--muted);font-size:13px" id="iePageInfo"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NEW: Admin Section (updated with income_rate & expense feed) -->
+    <section id="admin" class="tab-content hidden" aria-hidden="true">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;">
+        <!-- 1. Weaver Onboarding -->
+        <div class="report-card" aria-labelledby="adminWeaverHead">
+          <div id="adminWeaverHead" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div>
+              <h3 style="margin:0;font-size:16px;font-weight:800" data-i18n="admin.weaver.title">1. Weaver Onboarding</h3>
+              <div class="note" data-i18n="admin.weaver.note">Add new weaver to system</div>
+            </div>
+            <div id="adminWeaverStatus" style="color:var(--muted);font-size:13px">Ready</div>
+          </div>
+
+          <form id="weaverForm" aria-label="Weaver Onboarding Form">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <input id="weaverUsername" class="input-field" placeholder="System ID (e.g. W001)" aria-label="Weaver username" />
+              <input id="weaverFullName" class="input-field" placeholder="Full Weaver Name" aria-label="Full name" />
+              <div style="display:flex;gap:8px;align-items:center;">
+                <label style="font-weight:700;">Admin</label>
+                <input id="weaverIsAdmin" type="checkbox" />
+              </div>
+              <button type="button" id="saveWeaverBtn" class="primary-btn" data-i18n="admin.weaver.save">Save Weaver</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 2. Loom Config (now select + rate update + income_rate) -->
+        <div class="report-card" aria-labelledby="adminLoomHead">
+          <div id="adminLoomHead" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div>
+              <h3 style="margin:0;font-size:16px;font-weight:800" data-i18n="admin.loom.title">2. Loom Config</h3>
+              <div class="note" data-i18n="admin.loom.note">Select loom and update rate (old rate kept in history)</div>
+            </div>
+            <div id="adminLoomStatus" style="color:var(--muted);font-size:13px">Ready</div>
+          </div>
+
+          <form id="loomForm" aria-label="Loom Registration Form">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <select id="loomSelect" class="input-field" aria-label="Select loom or create new">
+                <option value="">-- New Loom (register) --</option>
+              </select>
+              <input id="newLoomLabel" class="input-field" placeholder="If creating new, enter Loom Label (e.g. L-01)" aria-label="New loom label" />
+              <input id="loomRate" type="number" step="0.01" class="input-field" placeholder="Rate per Saree (₹)" aria-label="Loom rate" />
+              <input id="loomIncomeRate" type="number" step="0.01" class="input-field" placeholder="Income rate per Saree (₹) — used for Income table" aria-label="Income rate per saree" />
+              <button type="button" id="saveLoomBtn" class="primary-btn" data-i18n="admin.loom.save">Register / Update Loom</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 3. Payment Entry (with mode) -->
+        <div class="report-card" aria-labelledby="adminPayoutHead">
+          <div id="adminPayoutHead" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div>
+              <h3 style="margin:0;font-size:16px;font-weight:800" data-i18n="admin.payout.title">3. Payment Entry</h3>
+              <div class="note" data-i18n="admin.payout.note">Record payout to weaver</div>
+            </div>
+            <div id="adminPayoutStatus" style="color:var(--muted);font-size:13px">Ready</div>
+          </div>
+
+          <form id="payoutForm" aria-label="Payout Form">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <input id="payoutDate" type="date" class="input-field" value="" aria-label="Payout date" />
+              <select id="payoutWeaverSelect" class="input-field" aria-label="Choose weaver for payout"><option value="">-- Choose Weaver --</option></select>
+              <input id="payoutAmount" type="number" step="0.01" class="input-field" placeholder="Amount Paid (₹)" aria-label="Amount paid" />
+              <select id="payoutMode" class="input-field" aria-label="Payment mode">
+                <option value="Cash" data-i18n="payout.mode.cash">பணம்</option>
+                <option value="Advance Adjustment" data-i18n="payout.mode.advance">முன்பணம் பிடித்தம்</option>
+              </select>
+              <button type="button" id="submitPayoutBtn" class="primary-btn" data-i18n="admin.payout.save">Submit Payout</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Updated confirm modal (stacking + scroll fixed) -->
+  <div id="confirmModal" class="hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
+    <div class="modal-backdrop" aria-hidden="true"></div>
+    <div class="bg-white rounded-lg p-4 card" role="document">
+      <h3 class="font-bold" id="modalTitle" data-i18n="modal.title">சேமிப்பை உறுதிசெய்</h3>
+      <p class="text-sm text-slate-600 mt-2" id="modalBody" data-i18n="modal.body">இந்த உற்பத்தி பதிவை சேமிக்க விரும்புகிறீர்களா? ஏற்கனவே இருக்கும் ரெக்கார்ட்களை மாற்றுவோம் (Overwrite).</p>
+      <div class="mt-3 flex justify-end gap-2">
+        <button class="px-3 py-2 rounded border" onclick="closeModal()" data-i18n="modal.cancel">ரத்து செய்</button>
+        <button id="modalConfirmBtn" class="px-3 py-2 rounded bg-indigo-600 text-white" data-i18n="modal.confirm">உறுதிசெய్</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastArea" aria-live="polite" class="pointer-events-none"></div>
+
+  <script>
+    // --- CONFIG ---
+    const SB_URL = "https://dxyjxnhflbtncajimjlb.supabase.co";
+    const SB_KEY = "sb_publishable_C-itd4A_xclStXY0OPj2sw_JU6eHQKI";
+    const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+    // Local state
+    let _reportRows = [];
+    let _filteredRows = [];
+    let _currentPage = 1;
+    let _pageSize = 10;
+    let _debounceTimer = null;
+    // keep last report head used for exports to avoid colspan issues
+    let lastReportHead = [];
+    // store production summary for optional export
+    let lastProductionSummary = null;
+
+    // Basic i18n strings (Tamil default, English fallback)
+    const i18n = {
+      ta: {
+        "brand.title": "EVJ Looms ERP",
+        "brand.subtitle": "பதிவு மற்றும் அறிக்கைகள்",
+        "nav.home": "முகப்பு",
+        "nav.work": "Work Entry",
+        "nav.bobin": "Bobbin Entry",
+        "nav.reports": "Reports",
+        "nav.admin": "Admin",
+        "entry.title": "உற்பத்தி பதிவுகள்",
+        "entry.note": "தினசரி பதிவு — தசம எண்கள் அனுமதி. சேமிப்பின் பின் படிகள் சுத்தமாகும்.",
+        "entry.date": "தேதி",
+        "entry.weaver": "நெசவாளர் (Weaver)",
+        "entry.save": "பதிவு செய்",
+        "entry.clear": "அழி",
+        "entry.hint": "குறிப்பு: இன்று உற்பத்தி செய்த தறிகளை மட்டும் உள்ளிடுங்கள்.",
+        "bobin.title": "பாபின் பதிவு",
+        "bobin.note": "தறிக்கு சம்பாதித்த தொகையை இங்கே சேர்க்கவும்.",
+        "bobin.date": "தேதி",
+        "bobin.weaver": "நெசவாளர் (Weaver)",
+        "bobin.save": "பதிவு செய்",
+        "bobin.clear": "அழி",
+        "bobin.hint": "குறிப்பு: இன்று சம்பாதித்த பாபின் தொகைகளை உள்ளிடுங்கள்.",
+        "reports.filter.weaver": "நெசவ தலைவர் தேர்வு",
+        "reports.filter.view": "அறிக்கை வகை",
+        "reports.filter.date": "கால வரம்பு",
+        "presets.today": "இன்று",
+        "presets.week": "இந்த வாரம்",
+        "presets.month": "இந்த மாதம்",
+        "presets.all": "அனைத்து நாட்கள்",
+        "reports.quick": "விரைவு செயல்கள்",
+        "reports.pdf": "PDF ஏற்றுமதி",
+        "reports.excel": "Excel ஏற்றுமதி",
+        "reports.print": "அச்சிடு",
+        "reports.compact": "சுருக்கமான காட்சி",
+        "reports.note": "வடிகட்டிகள் தானாக பொருந்தும். Refresh க்கு பொத்தானை அழுத்தவும்.",
+        "kpi.earned": "மொத்த கூலி",
+        "kpi.paid": "கொடுத்தது",
+        "kpi.balance": "மீதம்",
+        "reports.title": "நெசவாளர் கணக்கு (Ledger)",
+        "reports.refresh": "மீள்காட்சி",
+        "reports.nodata": "தரவு இல்லை",
+        "modal.title": "சேமிப்பை உறுதிசெய்",
+        "modal.body": "இந்த பதிவை சேமிக்க விரும்புகிறீர்களா? ஏற்கனவே இருக்கும் ரெக்கார்ட்களை மாற்றுவோம் (Overwrite).",
+        "modal.cancel": "ரத்து செய்",
+        "modal.confirm": "உறுதிசெய்",
+        "reports.type.ledger": "நெசவாளர் கணக்கு (Ledger)",
+        "reports.type.production": "உற்பத்தி விவரம் (Production)",
+        "reports.type.payouts": "கட்டண வரலாறு (Payouts)",
+        "admin.weaver.title": "1. Weaver Onboarding",
+        "admin.weaver.note": "Add new weaver to system",
+        "admin.weaver.save": "Save Weaver",
+        "admin.loom.title": "2. Loom Config",
+        "admin.loom.note": "Select loom and update rate",
+        "admin.loom.save": "Register Loom",
+        "admin.payout.title": "3. Payment Entry",
+        "admin.payout.note": "Record payout to weaver",
+        "admin.payout.save": "Submit Payout",
+        "payout.mode.cash": "பணம்",
+        "payout.mode.advance": "முன்பணம் பிடித்தம்",
+        "payout.desc.cash": "பணம் கொடுப்பு",
+        "payout.desc.deduction": "முன்பணம் பிடித்தல்",
+        "payout.receipt.title": "EVJ Looms", // header label (company) for receipt
+        "receipt.date": "தேதி",
+        "receipt.weaver": "நெசவாளர்",
+        "receipt.mode": "முறை",
+        "receipt.description": "விளக்கம்",
+        "receipt.amount": "தொகை",
+        "receipt.notes": "குறிப்புகள்",
+        "receipt.totallabel": "மொத்தம்"
+      },
+      en: {
+        "brand.title": "EVJ Looms ERP",
+        "brand.subtitle": "Entry & Reports",
+        "nav.home": "Home",
+        "nav.work": "Work Entry",
+        "nav.bobin": "Bobbin Entry",
+        "nav.reports": "Reports",
+        "nav.admin": "Admin",
+        "entry.title": "Production Log",
+        "entry.note": "Daily entry — decimals allowed. Entries are cleared after save.",
+        "entry.date": "Date",
+        "entry.weaver": "Weaver",
+        "entry.save": "Save",
+        "entry.clear": "Clear",
+        "entry.hint": "Tip: Enter only looms that produced sarees today.",
+        "bobin.title": "Bobbin Log",
+        "bobin.note": "Record bobbin earnings per loom here.",
+        "bobin.date": "Date",
+        "bobin.weaver": "Weaver",
+        "bobin.save": "Save",
+        "bobin.clear": "Clear",
+        "bobin.hint": "Tip: Only enter bobbin amounts earned today.",
+        "reports.filter.weaver": "Choose Weaver",
+        "reports.filter.view": "Report View",
+        "reports.filter.date": "Date Range",
+        "presets.today": "Today",
+        "presets.week": "This Week",
+        "presets.month": "This Month",
+        "presets.all": "All",
+        "reports.quick": "Quick Actions",
+        "reports.pdf": "Export PDF",
+        "reports.excel": "Export Excel",
+        "reports.print": "Print",
+        "reports.compact": "Compact View",
+        "reports.note": "Filters auto-apply. Use Refresh to re-sync data.",
+        "kpi.earned": "Gross Wages",
+        "kpi.paid": "Paid",
+        "kpi.balance": "Outstanding",
+        "reports.title": "Weaver Ledger",
+        "reports.refresh": "Refresh",
+        "reports.nodata": "No data",
+        "modal.title": "Confirm Save",
+        "modal.body": "Do you want to save this entry? Existing records (if any) will be overwritten.",
+        "modal.cancel": "Cancel",
+        "modal.confirm": "Confirm",
+        "reports.type.ledger": "Weaver Account Ledger",
+        "reports.type.production": "Production Details",
+        "reports.type.payouts": "Payment History",
+        "admin.weaver.title": "1. Weaver Onboarding",
+        "admin.weaver.note": "Add new weaver to system",
+        "admin.weaver.save": "Save Weaver",
+        "admin.loom.title": "2. Loom Config",
+        "admin.loom.note": "Select loom and update rate",
+        "admin.loom.save": "Register Loom",
+        "admin.payout.title": "3. Payment Entry",
+        "admin.payout.note": "Record payout to weaver",
+        "admin.payout.save": "Submit Payout",
+        "payout.mode.cash": "Cash",
+        "payout.mode.advance": "Advance Adjustment",
+        "payout.desc.cash": "Cash Payout",
+        "payout.desc.deduction": "Deduction",
+        "payout.receipt.title": "EVJ Looms", // header label for receipt
+        "receipt.date": "Date",
+        "receipt.weaver": "Weaver",
+        "receipt.mode": "Mode",
+        "receipt.description": "Description",
+        "receipt.amount": "Amount",
+        "receipt.notes": "Notes",
+        "receipt.totallabel": "Totals"
+      }
+    };
+
+    // default language: Tamil
+    let currentLang = 'ta';
+
+    function applyTranslations() {
+      document.documentElement.lang = currentLang === 'ta' ? 'ta' : 'en';
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const str = (i18n[currentLang] && i18n[currentLang][key]) ? i18n[currentLang][key] : (i18n['en'][key] || '');
+        const tag = el.tagName.toLowerCase();
+        // For inputs, placeholders are translated; for options and buttons, innerText should be set
+        if(tag === 'input' || tag === 'textarea') {
+          el.placeholder = str;
+        } else if(tag === 'option') {
+          el.textContent = str;
+        } else {
+          el.innerText = str;
+        }
+      });
+      // translate the header translate button label
+      const tBtnLabel = document.getElementById('translateLabel');
+      if (tBtnLabel) tBtnLabel.innerText = currentLang === 'ta' ? 'தமிழ்' : 'English';
+      // update modal body text when language toggles
+      const modalBody = document.getElementById('modalBody');
+      if(modalBody) modalBody.innerText = i18n[currentLang]['modal.body'];
+      // Update payment-mode option labels if present
+      const payoutMode = document.getElementById('payoutMode');
+      if(payoutMode) {
+        const cashOpt = payoutMode.querySelector('option[value="Cash"]');
+        const advOpt = payoutMode.querySelector('option[value="Advance Adjustment"]');
+        if(cashOpt) cashOpt.textContent = i18n[currentLang]['payout.mode.cash'] || cashOpt.textContent;
+        if(advOpt) advOpt.textContent = i18n[currentLang]['payout.mode.advance'] || advOpt.textContent;
+      }
+    }
+
+    function toggleLanguage() {
+      currentLang = (currentLang === 'ta') ? 'en' : 'ta';
+      applyTranslations();
+      // refresh loom labels & selects and reload report so labels/titles update immediately
+      refreshAppStates().then(() => scheduleLoadReport(200));
+      showToast(currentLang === 'ta' ? 'மொழி: தமிழ்' : 'Language: English', 1200);
+    }
+
+    // Call once early so the UI loads in Tamil by default
+    window.addEventListener('DOMContentLoaded', () => {
+      applyTranslations();
+    });
+
+    // --- helpers ---
+
+    function isoDate(d) {
+      const dt = new Date(d);
+      if (isNaN(dt)) return '';
+      return dt.toISOString().slice(0,10);
+    }
+
+    function daysAgo(n) {
+      const d = new Date();
+      d.setDate(d.getDate() - n);
+      return isoDate(d);
+    }
+
+    function startOfMonth() {
+      const d = new Date();
+      d.setDate(1);
+      return isoDate(d);
+    }
+
+    function fmtCurrency(v) {
+      const n = Math.round(parseFloat(v) || 0);
+      return '₹' + n.toLocaleString('en-IN');
+    }
+    function fmtInteger(v) {
+      if (v === undefined || v === null || isNaN(v)) return '-';
+      return Math.round(v).toLocaleString('en-IN');
+    }
+    function formatDateDisplay(s) {
+      if(!s) return '';
+      const iso = String(s).split('T')[0];
+      const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(m) return `${m[3]}-${m[2]}-${m[1]}`;
+      const d = new Date(s);
+      if(isNaN(d)) return s;
+      return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
+    }
+
+    function showToast(message, delay=1800) {
+      const id = 't-' + Date.now();
+      const el = document.createElement('div');
+      el.id = id;
+      el.className = 'toast';
+      el.style.position = 'fixed';
+      el.style.right = '18px';
+      el.style.bottom = '18px';
+      el.style.background = 'rgba(15,23,42,0.95)';
+      el.style.color = '#fff';
+      el.style.padding = '10px 12px';
+      el.style.borderRadius = '10px';
+      el.style.boxShadow = '0 8px 30px rgba(2,6,23,0.18)';
+      el.innerText = message;
+      document.body.appendChild(el);
+      setTimeout(()=> {
+        el.style.opacity = '0';
+        setTimeout(()=> el.remove(), 300);
+      }, delay);
+    }
+
+    // Modal open/close with scroll lock and focus handling
+    function openModal(opts = {}) {
+      // opts.title, opts.body, opts.onConfirm (function)
+      const modal = document.getElementById('confirmModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalBody = document.getElementById('modalBody');
+      const confirmBtn = document.getElementById('modalConfirmBtn');
+      if(opts.title) modalTitle.innerText = opts.title;
+      if(opts.body) modalBody.innerText = opts.body;
+      // replace previous listeners safely
+      const newBtn = confirmBtn.cloneNode(true);
+      confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+      if(opts.onConfirm) newBtn.addEventListener('click', opts.onConfirm);
+      newBtn.addEventListener('click', closeModal);
+      // show modal and prevent background scroll
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      modal.setAttribute('aria-hidden','false');
+      document.body.style.overflow = 'hidden';
+      // accessibility: focus confirm button
+      setTimeout(() => { newBtn.focus(); }, 80);
+    }
+    function closeModal(){
+      const modal = document.getElementById('confirmModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      modal.setAttribute('aria-hidden','true');
+      // restore body scroll
+      document.body.style.overflow = '';
+    }
+
+    function setLoadingBtn(btn, isLoading, text){
+      if(!btn) return;
+      if(isLoading){ btn.disabled = true; btn.dataset.orig = btn.innerHTML; btn.innerHTML = `<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2 align-middle"></span>${text || 'Working...'}`; }
+      else { btn.disabled = false; btn.innerHTML = btn.dataset.orig || btn.innerHTML; }
+    }
+
+    function getLoomLabel() {
+      return currentLang === 'ta' ? 'தறி' : 'Loom';
+    }
+
+    // --------------------------
+    // NOTE: sanitizeForPdf updated to remove stray ampersands and control chars
+    // --------------------------
+    function sanitizeForPdf(s) {
+      if (s === undefined || s === null) return '';
+      let str = String(s);
+      // normalize whitespace, remove non-printables
+      str = str.replace(/\u00A0/g, ' ').replace(/[\u200B-\u200F\uFEFF]/g, '');
+      // Remove any ampersands that show up due to earlier transformations
+      str = str.replace(/&/g, '');
+      // Replace Rupee symbol to readable "Rs " for pdf/csv
+      str = str.replace(/₹/g, 'Rs ');
+      // Remove stray characters that can appear (safeguard)
+      str = str.replace(/[^\x20-\x7E\u0B80-\u0BFF\u0C00-\u0C7F\n\r]/g, '');
+      return str;
+    }
+
+    // Populate selects & loom rows
+    async function refreshAppStates() {
+      try {
+        const { data: users } = await _supabase.from('user_master').select('*').order('full_name');
+        const { data: looms } = await _supabase.from('loom_master').select('*').order('loom_no');
+
+        // Weaver selects
+        ['transWeaverSelect','analysisWeaverSelect','bobinWeaverSelect','payoutWeaverSelect','ieWeaverSelect'].forEach(id => {
+          const sel = document.getElementById(id);
+          if(!sel) return;
+          const cur = sel.value || '';
+          const chooseText = currentLang === 'ta' ? '-- தேர்வு செய்யவும் --' : '-- Choose --';
+          sel.innerHTML = `<option value="">${chooseText}</option>`;
+          users?.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = u.full_name;
+            sel.appendChild(opt);
+          });
+          try { sel.value = cur; } catch(e) {}
+        });
+
+        // Admin payout weaver select (duplicate handled above)
+        const payoutSel = document.getElementById('payoutWeaverSelect');
+        if(payoutSel && users){
+          const cur = payoutSel.value || '';
+          payoutSel.innerHTML = `<option value="">${currentLang === 'ta' ? '-- தேர்வு செய்யவும் --' : '-- Choose Weaver --'}</option>`;
+          users.forEach(u => {
+            const opt = document.createElement('option'); opt.value = u.id; opt.textContent = u.full_name; payoutSel.appendChild(opt);
+          });
+          try { payoutSel.value = cur; } catch(e) {}
+        }
+
+        // Loom rows for entry/bobin: also expose income_rate on data attributes
+        const container = document.getElementById('loomRowsContainer');
+        if(container && looms){
+          container.innerHTML = '';
+          looms.forEach(l => {
+            const replacement = getLoomLabel();
+            const displayLoomName = (l.loom_no || '').replace(/loom/ig, replacement);
+            container.insertAdjacentHTML('beforeend', `
+              <div class="loom-row" data-loom-id="${l.id}">
+                <div class="loom-left">
+                  <div class="loom-name">${displayLoomName}</div>
+                </div>
+
+                <div>
+                  <label class="sr-only">${currentLang === 'ta' ? 'எண்' : 'Nos'} for ${displayLoomName}</label>
+                  <input type="number" inputmode="numeric" min="0" step="0.1" placeholder="${currentLang === 'ta' ? 'எண்கள் மட்டுமே' : 'Nos only'}" aria-label="Nos for ${displayLoomName}" class="qty-field input-field" data-rate="${l.saree_rate}" data-income-rate="${l.income_rate ?? ''}" data-id="${l.id}">
+                </div>
+
+                <div>
+                  <label class="sr-only">${currentLang === 'ta' ? 'Trip அல்லது குறிப்பு' : 'Trip or Note'} for ${displayLoomName}</label>
+                  <input type="text" placeholder="${currentLang === 'ta' ? 'Trip / குறிப்பு' : 'Trip / Note (text only)'}" aria-label="Trip or note for ${displayLoomName}" class="note-field input-field">
+                </div>
+              </div>
+            `);
+          });
+        }
+
+        const bobinContainer = document.getElementById('bobinRowsContainer');
+        if(bobinContainer && looms){
+          bobinContainer.innerHTML = '';
+          looms.forEach(l => {
+            const replacement = getLoomLabel();
+            const displayLoomName = (l.loom_no || '').replace(/loom/ig, replacement);
+            bobinContainer.insertAdjacentHTML('beforeend', `
+              <div class="loom-row" data-loom-id="${l.id}">
+                <div class="loom-left">
+                  <div class="loom-name">${displayLoomName}</div>
+                </div>
+
+                <div>
+                  <label class="sr-only">${currentLang === 'ta' ? 'தொகை' : 'Amount'} for ${displayLoomName}</label>
+                  <input type="number" inputmode="decimal" min="0" step="0.01" placeholder="${currentLang === 'ta' ? '₹ தொகை' : 'Amount (₹)'}" aria-label="Amount for ${displayLoomName}" class="amount-field input-field" data-id="${l.id}">
+                </div>
+
+                <div>
+                  <label class="sr-only">${currentLang === 'ta' ? 'குறிப்பு' : 'Note'} for ${displayLoomName}</label>
+                  <input type="text" placeholder="${currentLang === 'ta' ? 'குறிப்பு (ஐச்சிகம்)' : 'Note (optional)'}" aria-label="Note for ${displayLoomName}" class="note-field input-field">
+                </div>
+              </div>
+            `);
+          });
+        }
+
+        // Populate admin loom select (and also IE / expense loom selects)
+        const loomSel = document.getElementById('loomSelect');
+        const ieLoomSel = document.getElementById('ieLoomSelect');
+        const expenseLoomSel = document.getElementById('expenseLoomSelect');
+        if(loomSel && looms){
+          const cur = loomSel.value || '';
+          loomSel.innerHTML = `<option value="">-- New Loom (register) --</option>`;
+          looms.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l.id;
+            opt.textContent = `${l.loom_no} — ₹${l.saree_rate}${l.income_rate ? ' | Income ₹'+l.income_rate : ''}`;
+            opt.dataset.rate = l.saree_rate;
+            opt.dataset.incomeRate = l.income_rate || '';
+            loomSel.appendChild(opt);
+          });
+          try { loomSel.value = cur; } catch(e) {}
+        }
+        if(ieLoomSel && looms){
+          const cur = ieLoomSel.value || '';
+          ieLoomSel.innerHTML = `<option value="">-- All looms --</option>`;
+          looms.forEach(l => {
+            const opt = document.createElement('option'); opt.value = l.id; opt.textContent = l.loom_no; ieLoomSel.appendChild(opt);
+          });
+          try { ieLoomSel.value = cur; } catch(e) {}
+        }
+        if(expenseLoomSel && looms){
+          const cur = expenseLoomSel.value || '';
+          expenseLoomSel.innerHTML = `<option value="">-- Choose Loom --</option>`;
+          looms.forEach(l => {
+            const opt = document.createElement('option'); opt.value = l.id; opt.textContent = l.loom_no; expenseLoomSel.appendChild(opt);
+          });
+          try { expenseLoomSel.value = cur; } catch(e) {}
+        }
+
+        wireAutoFilters();
+        scheduleLoadReport(120);
+      } catch (err) {
+        console.error(err);
+        showToast((currentLang === 'ta' ? 'ஐட்டம் ஏற்ற முடியவில்லை: ' : 'Failed to load app state: ') + (err.message||err));
+      }
+    }
+
+    function clearForm(){
+      const form = document.getElementById('transForm');
+      form.reset();
+      document.getElementById('manualDate').value = new Date().toISOString().split('T')[0];
+      document.querySelectorAll('.qty-field').forEach(i => i.value = '');
+      document.querySelectorAll('#transaction .note-field').forEach(i => i.value = '');
+      document.getElementById('transStatus').innerText = currentLang === 'ta' ? 'சுத்தம் செய்யப்பட்டது' : 'Cleared';
+      showToast(currentLang === 'ta' ? 'சுத்தம் செய்யப்பட்டது' : 'Cleared');
+    }
+
+    function clearBobinForm(){
+      const form = document.getElementById('bobinForm');
+      form.reset();
+      document.getElementById('bobinDate').value = new Date().toISOString().split('T')[0];
+      document.querySelectorAll('.amount-field').forEach(i => i.value = '');
+      document.querySelectorAll('#bobin .note-field').forEach(i => i.value = '');
+      document.getElementById('bobinStatus').innerText = currentLang === 'ta' ? 'சுத்தம் செய்யப்பட்டது' : 'Cleared';
+      showToast(currentLang === 'ta' ? 'சுத்தம் செய்யப்பட்டது' : 'Cleared');
+    }
+
+    (function wireTransaction() {
+      const form = document.getElementById('transForm');
+      const submitBtn = document.getElementById('submitBtn');
+      let pendingEntries = null;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const date = document.getElementById('manualDate').value;
+        const uid = document.getElementById('transWeaverSelect').value;
+        if(!date) { showToast(currentLang === 'ta' ? 'தயவுசெய்து தேதி தெரிவுசெய்க' : 'Please select date'); return; }
+        if(!uid) { showToast(currentLang === 'ta' ? 'தயவுசெய்து வீவர் தெரிவுசெய்க' : 'Please choose a weaver'); return; }
+
+        const entries = [];
+        document.querySelectorAll('.qty-field').forEach(el => {
+          const q = el.value === '' ? 0 : parseFloat(el.value);
+          if(q > 0) {
+            const id = el.dataset.id;
+            const rate = parseFloat(el.dataset.rate || 0);
+            const incomeRate = parseFloat(el.dataset.incomeRate || rate);
+            const row = el.closest('.loom-row');
+            const trip = row.querySelector('.note-field')?.value || null;
+            entries.push({
+              entry_date: date,
+              weaver_id: uid,
+              loom_id: id,
+              saree_completed: Math.floor(q),
+              saree_count: q,
+              daily_wage: (q * rate).toFixed(2),
+              trip_display: trip,
+            });
+          }
+        });
+
+        if(entries.length === 0) {
+          showToast(currentLang === 'ta' ? 'குறைந்தது ஒரு தறி-க்கான எண்ணிக்கையை உள்ளிடுங்கள்' : 'Enter quantity for at least one loom');
+          clearForm();
+          return;
+        }
+
+        pendingEntries = entries;
+        openModal({
+          title: currentLang === 'ta' ? 'சேமிப்பை உறுதிசெய்' : 'Confirm Save',
+          body: i18n[currentLang]['modal.body'],
+          onConfirm: async () => {
+            setLoadingBtn(submitBtn, true, currentLang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...');
+            try {
+              const { error } = await _supabase.from('daily_transactions')
+                .upsert(pendingEntries, { onConflict: ['entry_date','weaver_id','loom_id'] });
+              if(error) throw error;
+              showToast(currentLang === 'ta' ? 'பதிவு சேமிக்கப்பட்டது' : 'Work Log Saved');
+              document.getElementById('transStatus').innerText = currentLang === 'ta' ? 'சேமிக்கப்பட்டது' : 'Saved';
+              clearForm();
+              await refreshAppStates();
+              scheduleLoadReport(200);
+            } catch(err) {
+              console.error(err);
+              showToast((currentLang === 'ta' ? 'சேமிப்பு தோல்வி: ' : 'Save failed: ') + (err.message||err));
+              clearForm();
+            } finally {
+              setLoadingBtn(submitBtn, false);
+              pendingEntries = null;
+            }
+          }
+        });
+      });
+    })();
+
+    (function wireBobin() {
+      const form = document.getElementById('bobinForm');
+      const submitBtn = document.getElementById('bobinSubmitBtn');
+      let pendingEntries = null;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const date = document.getElementById('bobinDate').value;
+        const uid = document.getElementById('bobinWeaverSelect').value;
+        if(!date) { showToast(currentLang === 'ta' ? 'தயவுசெய்து தேதி தெரிவுசெய்க' : 'Please select date'); return; }
+        if(!uid) { showToast(currentLang === 'ta' ? 'தயவுசெய்து வீவர் தெரிவுசெய்க' : 'Please choose a weaver'); return; }
+
+        const entries = [];
+        document.querySelectorAll('.amount-field').forEach(el => {
+          const amt = el.value === '' ? 0 : parseFloat(el.value);
+          if(amt > 0) {
+            const id = el.dataset.id;
+            const row = el.closest('.loom-row');
+            const note = row.querySelector('.note-field')?.value || null;
+            entries.push({
+              entry_date: date,
+              weaver_id: uid,
+              loom_id: id,
+              amount_earned: amt.toFixed(2),
+              note: note,
+            });
+          }
+        });
+
+        if(entries.length === 0) {
+          showToast(currentLang === 'ta' ? 'குறைந்தது ஒரு தறி-க்கான தொகையை உள்ளிடுங்கள்' : 'Enter amount for at least one loom');
+          clearBobinForm();
+          return;
+        }
+
+        pendingEntries = entries;
+        openModal({
+          title: currentLang === 'ta' ? 'சேமிப்பை உறுதிசெய்' : 'Confirm Save',
+          body: i18n[currentLang]['modal.body'],
+          onConfirm: async () => {
+            setLoadingBtn(submitBtn, true, currentLang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...');
+            try {
+              const { error } = await _supabase.from('bobin_transactions')
+                .upsert(pendingEntries, { onConflict: ['entry_date','weaver_id','loom_id'] });
+              if(error) throw error;
+              showToast(currentLang === 'ta' ? 'பாபின் பதிவு சேமிக்கப்பட்டது' : 'Bobbin Log Saved');
+              document.getElementById('bobinStatus').innerText = currentLang === 'ta' ? 'சேமிக்கப்பட்டது' : 'Saved';
+              clearBobinForm();
+              await refreshAppStates();
+              scheduleLoadReport(200);
+            } catch(err) {
+              console.error(err);
+              showToast((currentLang === 'ta' ? 'சேமிப்பு தோல்வி: ' : 'Save failed: ') + (err.message||err));
+              clearBobinForm();
+            } finally {
+              setLoadingBtn(submitBtn, false);
+              pendingEntries = null;
+            }
+          }
+        });
+      });
+    })();
+
+    (function wireAdmin() {
+      const saveWeaverBtn = document.getElementById('saveWeaverBtn');
+      const saveLoomBtn = document.getElementById('saveLoomBtn');
+      const submitPayoutBtn = document.getElementById('submitPayoutBtn');
+      const loomSelect = document.getElementById('loomSelect');
+      const newLoomLabel = document.getElementById('newLoomLabel');
+
+      // When loom selection changes, populate rate input if existing
+      if(loomSelect) {
+        loomSelect.addEventListener('change', () => {
+          const selected = loomSelect.selectedOptions[0];
+          const rateInput = document.getElementById('loomRate');
+          const incomeRateInput = document.getElementById('loomIncomeRate');
+          if(!selected || !selected.value) {
+            // new loom selected
+            rateInput.value = '';
+            incomeRateInput.value = '';
+            newLoomLabel.style.display = 'block';
+          } else {
+            newLoomLabel.style.display = 'none';
+            const r = selected.dataset.rate || '';
+            const ir = selected.dataset.incomeRate || '';
+            rateInput.value = r;
+            incomeRateInput.value = ir;
+          }
+        });
+      }
+
+      if(saveWeaverBtn) {
+        saveWeaverBtn.addEventListener('click', async () => {
+          const username = document.getElementById('weaverUsername').value.trim();
+          const fullName = document.getElementById('weaverFullName').value.trim();
+          const isAdmin = document.getElementById('weaverIsAdmin').checked;
+
+          if(!username || !fullName) {
+            showToast(currentLang === 'ta' ? 'தயவுசெய்து அனைத்து புலங்களையும் நிரப்பவும்' : 'Please fill required fields');
+            return;
+          }
+          setLoadingBtn(saveWeaverBtn, true, currentLang === 'ta' ? 'சேமிக்க...' : 'Saving...');
+          try {
+            const { error } = await _supabase.from('user_master').insert([{ username, full_name: fullName, is_admin: isAdmin }]);
+            if(error) throw error;
+            showToast(currentLang === 'ta' ? 'நெசவாளர் சேர்க்கப்பட்டது' : 'Weaver added');
+            document.getElementById('adminWeaverStatus').innerText = currentLang === 'ta' ? 'சேமிக்கப்பட்டது' : 'Saved';
+            document.getElementById('weaverUsername').value = '';
+            document.getElementById('weaverFullName').value = '';
+            document.getElementById('weaverIsAdmin').checked = false;
+            await refreshAppStates();
+            scheduleLoadReport(200); // ensure reports reflect new user
+          } catch(err) {
+            console.error(err);
+            showToast((currentLang === 'ta' ? 'சேமிப்பு தோல்வி: ' : 'Save failed: ') + (err.message || err));
+          } finally {
+            setLoadingBtn(saveWeaverBtn, false);
+          }
+        });
+      }
+
+      if(saveLoomBtn) {
+        saveLoomBtn.addEventListener('click', async () => {
+          const selectedLoomId = document.getElementById('loomSelect').value;
+          const labelForNew = document.getElementById('newLoomLabel').value.trim();
+          const rate = parseFloat(document.getElementById('loomRate').value || 0);
+          const incomeRate = parseFloat(document.getElementById('loomIncomeRate').value || 0);
+          if(!selectedLoomId && !labelForNew) {
+            showToast(currentLang === 'ta' ? 'தயவுசெய்து தறி பெயரை அல்லது ஒன்றை தெரிவுசெய்க' : 'Please provide a loom label or select existing loom');
+            return;
+          }
+          if(!rate || rate <= 0) {
+            showToast(currentLang === 'ta' ? 'தயவுசெய்து சரியான விகிதம் உள்ளிடவும்' : 'Enter a valid rate');
+            return;
+          }
+          setLoadingBtn(saveLoomBtn, true, currentLang === 'ta' ? 'சேமிக்க...' : 'Saving...');
+          try {
+            if(selectedLoomId) {
+              // Update rate and income_rate (new column) and rely on DB trigger to record history (loom_rate_history)
+              const { error } = await _supabase.from('loom_master').update({ saree_rate: rate, income_rate: incomeRate || null }).eq('id', selectedLoomId);
+              if(error) throw error;
+              showToast(currentLang === 'ta' ? 'தறி விகிதம் புதுப்பிக்கப்பட்டது' : 'Loom rate updated');
+            } else {
+              const { error } = await _supabase.from('loom_master').insert([{ loom_no: labelForNew, saree_rate: rate, income_rate: incomeRate || null }]);
+              if(error) throw error;
+              showToast(currentLang === 'ta' ? 'புதிய தறி சேர்க்கப்பட்டது' : 'New loom added');
+            }
+            document.getElementById('loomSelect').value = '';
+            document.getElementById('newLoomLabel').value = '';
+            document.getElementById('loomRate').value = '';
+            document.getElementById('loomIncomeRate').value = '';
+            document.getElementById('adminLoomStatus').innerText = currentLang === 'ta' ? 'சேமிக்கப்பட்டது' : 'Saved';
+            await refreshAppStates();
+            scheduleLoadReport(200);
+          } catch(err) {
+            console.error(err);
+            showToast((currentLang === 'ta' ? 'சேமிப்பு தோல்வி: ' : 'Save failed: ') + (err.message || err));
+          } finally {
+            setLoadingBtn(saveLoomBtn, false);
+          }
+        });
+      }
+
+      if(submitPayoutBtn) {
+        submitPayoutBtn.addEventListener('click', async () => {
+          const date = document.getElementById('payoutDate').value;
+          const uid = document.getElementById('payoutWeaverSelect').value;
+          const amt = parseFloat(document.getElementById('payoutAmount').value || 0);
+          const mode = document.getElementById('payoutMode').value || 'Cash';
+          if(!date || !uid || !amt || amt <= 0) {
+            showToast(currentLang === 'ta' ? 'தயவுசெய்து சரியான தேதி, நெசவாளர் மற்றும் தொகையை உள்ளிடவும்' : 'Please enter valid date, weaver and amount');
+            return;
+          }
+          setLoadingBtn(submitPayoutBtn, true, currentLang === 'ta' ? 'சேமிக்க...' : 'Saving...');
+          try {
+            const { data, error } = await _supabase.from('payout_transactions').insert([{ payout_date: date, weaver_id: uid, amount_paid: amt, payment_mode: mode }]).select().single();
+            if(error) throw error;
+            showToast(currentLang === 'ta' ? 'கொடுப்பனவு பதிவேட்டப்பட்டது' : 'Payout recorded');
+            document.getElementById('payoutDate').value = new Date().toISOString().slice(0,10);
+            document.getElementById('payoutWeaverSelect').value = '';
+            document.getElementById('payoutAmount').value = '';
+            document.getElementById('payoutMode').value = 'Cash';
+            document.getElementById('adminPayoutStatus').innerText = currentLang === 'ta' ? 'சேமிக்கப்பட்டது' : 'Saved';
+            await refreshAppStates();
+            scheduleLoadReport(200); // update reports to reflect payout
+
+            // NOTE: Receipt auto-generation/auto-print has been removed per request.
+            // To generate a receipt manually call generatePayoutReceipt(...) if needed.
+          } catch(err) {
+            console.error(err);
+            showToast((currentLang === 'ta' ? 'சேமிப்பு தோல்வி: ' : 'Save failed: ') + (err.message || err));
+          } finally {
+            setLoadingBtn(submitPayoutBtn, false);
+          }
+        });
+      }
+    })();
+
+    // FILTER helpers (was missing previously) - fixes filters not working
+    function setRange(range) {
+      const start = document.getElementById('startDate');
+      const end = document.getElementById('endDate');
+      if(range === 'today') {
+        const d = isoDate(new Date());
+        start.value = d; end.value = d;
+      } else if(range === 'week') {
+        start.value = daysAgo(7);
+        end.value = isoDate(new Date());
+      } else if(range === 'month') {
+        start.value = startOfMonth();
+        end.value = isoDate(new Date());
+      } else if(range === 'all') {
+        start.value = '';
+        end.value = '';
+      }
+      scheduleLoadReport(50);
+    }
+
+    // IE range setter
+    function setIERange(range) {
+      const start = document.getElementById('ieStartDate');
+      const end = document.getElementById('ieEndDate');
+      if(range === 'today') {
+        const d = isoDate(new Date());
+        start.value = d; end.value = d;
+      } else if(range === 'week') {
+        start.value = daysAgo(7);
+        end.value = isoDate(new Date());
+      } else if(range === 'month') {
+        start.value = startOfMonth();
+        end.value = isoDate(new Date());
+      } else if(range === 'all') {
+        start.value = '';
+        end.value = '';
+      }
+      scheduleLoadIEReport(50);
+    }
+
+    // REPORTS wiring
+    function scheduleLoadReport(wait = 400) {
+      if(_debounceTimer) clearTimeout(_debounceTimer);
+      _debounceTimer = setTimeout(() => {
+        _currentPage = 1;
+        loadReport();
+      }, wait);
+    }
+
+    function wireAutoFilters() {
+      // use direct assignment to avoid stacking listeners
+      const selectors = [
+        'analysisWeaverSelect',
+        'reportType',
+        'startDate',
+        'endDate'
+      ];
+      selectors.forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.onchange = () => scheduleLoadReport();
+        el.oninput = () => scheduleLoadReport();
+        // ensure keyboard Enter triggers reload
+        el.onkeydown = (e) => { if(e.key === 'Enter') scheduleLoadReport(); };
+      });
+
+      // IE filters
+      ['ieWeaverSelect','ieLoomSelect','ieStartDate','ieEndDate'].forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.onchange = () => scheduleLoadIEReport();
+        el.oninput = () => scheduleLoadIEReport();
+        el.onkeydown = (e) => { if(e.key === 'Enter') scheduleLoadIEReport(); };
+      });
+
+      // Ensure selects increase z-index while focused (helps on some browsers where dropdown gets clipped)
+      document.querySelectorAll('select').forEach(s => {
+        s.addEventListener('focus', () => s.style.zIndex = 9999);
+        s.addEventListener('blur', () => s.style.zIndex = '');
+      });
+    }
+
+    async function refreshReport() {
+      showToast(currentLang === 'ta' ? 'புதுப்பிக்கப்படுகிறது...' : 'Refreshing...');
+      await refreshAppStates();
+      _currentPage = 1;
+      loadReport();
+    }
+
+    function renderProductionSummary(summary) {
+      const container = document.getElementById('productionSummary');
+      if(!summary || Object.keys(summary).length === 0) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+        lastProductionSummary = null;
+        return;
+      }
+
+      lastProductionSummary = summary; // store for optional export
+
+      const replacement = getLoomLabel();
+      const head = [
+        replacement,
+        currentLang === 'ta' ? 'மொத்த சேலைகள்' : 'Total Sarees',
+        currentLang === 'ta' ? 'வருமானம்' : 'Amount Earned',
+        currentLang === 'ta' ? 'பாபின்' : 'Bobbin',
+        currentLang === 'ta' ? 'மொத்த தொகை' : 'Total Amount'
+      ];
+
+      const rows = Object.keys(summary).sort().map(loom => {
+        const v = summary[loom];
+        return [
+          loom,
+          fmtInteger(v.sarees),
+          fmtCurrency(v.amount || 0),
+          fmtCurrency(v.bobin || 0),
+          fmtCurrency(v.total || 0)
+        ];
+      });
+
+      const totalSarees = Object.values(summary).reduce((s,v)=>s + (v.sarees||0),0);
+      const totalAmount = Object.values(summary).reduce((s,v)=>s + (v.amount||0),0);
+      const totalBobin = Object.values(summary).reduce((s,v)=>s + (v.bobin||0),0);
+      const totalCombined = Object.values(summary).reduce((s,v)=>s + (v.total||0),0);
+
+      const tableHtml = `
+        <div style="text-align:center;margin-bottom:6px;font-weight:800">${currentLang === 'ta' ? 'தறி சுருக்கம்' : 'Loom Summary'}</div>
+        <div style="overflow-x:auto">
+          <table class="report-table">
+            <thead>
+              <tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}
+            </tbody>
+            <tfoot>
+              <tr class="totals-row">
+                <td style="text-align:center;font-weight:800">${currentLang === 'ta' ? 'மொத்தங்கள்' : 'Totals'} ${fmtInteger(totalSarees)}</td>
+                <td></td>
+                <td class="text-right-num">${fmtCurrency(totalAmount)}</td>
+                <td class="text-right-num">${fmtCurrency(totalBobin)}</td>
+                <td class="text-right-num">${fmtCurrency(totalCombined)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      `;
+      container.innerHTML = tableHtml;
+      container.style.display = 'block';
+    }
+
+    async function loadReport() {
+      const uid = document.getElementById('analysisWeaverSelect').value;
+      const type = document.getElementById('reportType').value;
+      const start = document.getElementById('startDate').value;
+      const end = document.getElementById('endDate').value;
+
+      const titleMap = {
+        ledger: currentLang === 'ta' ? 'நெசவாளர் கணக்கு (Ledger)' : 'Weaver Account Ledger',
+        production: currentLang === 'ta' ? 'உற்பத்தி விவரம்' : 'Production Details',
+        payouts: currentLang === 'ta' ? 'கட்டண வரலாறு' : 'Payment History',
+        income_expense: currentLang === 'ta' ? 'வ��ுமானம் மற்றும் செலவுகள்' : 'Income & Expenses'
+      };
+      document.getElementById('reportTitleName').innerText = titleMap[type] || (currentLang === 'ta' ? 'அறிக்கை' : 'Report');
+
+      document.getElementById('rowsSummary').innerText = currentLang === 'ta' ? 'ஏற்றுகிறது...' : 'Loading...';
+      document.getElementById('rHead').innerHTML = '';
+      document.getElementById('rBody').innerHTML = '';
+      document.getElementById('productionSummary').style.display = 'none';
+      document.getElementById('productionSummary').innerHTML = '';
+      document.getElementById('reportUserName').innerText = '';
+      lastProductionSummary = null;
+
+      if(!uid) {
+        document.getElementById('rowsSummary').innerText = currentLang === 'ta' ? 'தரவு இல்லை (நெசவாளர் தெரிவுசெய்க)' : 'No data (select weaver)';
+        _reportRows = []; _filteredRows = [];
+        lastReportHead = [];
+        renderEmptyTable();
+        return;
+      }
+
+      try {
+        let wQ = _supabase.from('daily_transactions').select('*, loom_master(loom_no, saree_rate, income_rate)').eq('weaver_id', uid);
+        let bQ = _supabase.from('bobin_transactions').select('*, loom_master(loom_no, saree_rate)').eq('weaver_id', uid);
+        let pQ = _supabase.from('payout_transactions').select('*').eq('weaver_id', uid);
+        if(start) { wQ = wQ.gte('entry_date', start); bQ = bQ.gte('entry_date', start); pQ = pQ.gte('payout_date', start); }
+        if(end) { wQ = wQ.lte('entry_date', end); bQ = bQ.lte('entry_date', end); pQ = pQ.lte('payout_date', end); }
+
+        const [wRes, bRes, pRes] = await Promise.all([wQ, bQ, pQ]);
+        const work = wRes.data || [];
+        const bobin = bRes.data || [];
+        const pay = pRes.data || [];
+
+        const sumWork = (work||[]).reduce((s,r)=>s + (parseFloat(r.daily_wage)||0),0);
+        const sumBobin = (bobin||[]).reduce((s,r)=>s + (parseFloat(r.amount_earned)||0),0);
+        const tEarned = sumWork + sumBobin;
+        const tPaid = (pay||[]).reduce((s,r)=>s + (parseFloat(r.amount_paid)||0),0);
+        document.getElementById('statEarned').innerText = fmtCurrency(tEarned);
+        document.getElementById('statPaid').innerText = fmtCurrency(tPaid);
+        document.getElementById('statBalance').innerText = fmtCurrency(tEarned - tPaid);
+
+        const rRangeLabel = document.getElementById('reportDateRange');
+        if(start && end) rRangeLabel.innerText = `${formatDateDisplay(start)} to ${formatDateDisplay(end)}`;
+        else if(start && !end) rRangeLabel.innerText = `${currentLang === 'ta' ? 'தொடக்கம்' : 'From'} ${formatDateDisplay(start)}`;
+        else if(!start && end) rRangeLabel.innerText = `${currentLang === 'ta' ? 'வரை' : 'Up to'} ${formatDateDisplay(end)}`;
+        else rRangeLabel.innerText = currentLang === 'ta' ? 'முழு காலம்' : 'Full Period';
+
+        const weaverSelect = document.getElementById('analysisWeaverSelect');
+        const userName = (weaverSelect && weaverSelect.selectedOptions && weaverSelect.selectedOptions[0]) ? weaverSelect.selectedOptions[0].text.trim() : '';
+        document.getElementById('reportUserName').innerText = userName ? (currentLang === 'ta' ? `நெசவாளர்: ${userName}` : `Weaver: ${userName}`) : '';
+
+        if(type === 'production') {
+          const head = [ 
+            currentLang === 'ta' ? 'தேதி' : 'Date', 
+            getLoomLabel(), 
+            currentLang === 'ta' ? 'சேலை' : 'Saree', 
+            currentLang === 'ta' ? 'விவரம்' : 'Details', 
+            currentLang === 'ta' ? 'Trip' : 'Trip', 
+            currentLang === 'ta' ? 'தொகை' : 'Amount', 
+            currentLang === 'ta' ? 'மொத்தம்' : 'Total Amount'
+          ];
+          const summary = {};
+
+          const workRows = (work||[]).map(r => {
+            const nos = r.saree_completed ?? Math.floor(r.saree_count||0);
+            const rawLoomNo = r.loom_master?.loom_no || '-';
+            const loomNo = String(rawLoomNo).replace(/loom/ig, getLoomLabel());
+            const sareeCount = parseFloat(r.saree_count) || 0;
+            const amt = parseFloat(r.daily_wage) || 0;
+
+            if(!summary[loomNo]) summary[loomNo] = { sarees:0, amount:0, bobin:0, total:0 };
+            summary[loomNo].sarees += sareeCount;
+            summary[loomNo].amount += amt;
+            summary[loomNo].total += amt;
+
+            return {
+              date: formatDateDisplay(r.entry_date),
+              loom: loomNo,
+              saree: (r.saree_count ?? '-'),
+              details: `${nos} Nos @ ₹${r.loom_master?.saree_rate ?? '-'}`,
+              trip: (r.trip_display || '-'),
+              amount: fmtCurrency(amt),
+              totalAmount: fmtCurrency(amt)
+            };
+          });
+
+          const bobinRows = (bobin||[]).map(b => {
+            const rawLoomNo = b.loom_master?.loom_no || '-';
+            const loomNo = String(rawLoomNo).replace(/loom/ig, getLoomLabel());
+            const amt = parseFloat(b.amount_earned) || 0;
+            if(!summary[loomNo]) summary[loomNo] = { sarees:0, amount:0, bobin:0, total:0 };
+            summary[loomNo].bobin += amt;
+            summary[loomNo].total += amt;
+
+            return {
+              date: formatDateDisplay(b.entry_date),
+              loom: loomNo,
+              saree: '-',
+              details: '-',
+              trip: '-',
+              amount: '-',
+              totalAmount: fmtCurrency(amt)
+            };
+          });
+
+          const combinedRows = [...workRows, ...bobinRows].sort((a,b) => {
+            const da = (a.date || '').split('-').reverse().join('');
+            const db = (b.date || '').split('-').reverse().join('');
+            return db.localeCompare(da);
+          });
+
+          const rows = combinedRows.map(r => [r.date, r.loom, r.saree, r.details, r.trip, r.amount, r.totalAmount]);
+
+          renderProductionSummary(summary);
+          postProcessReport(head, rows);
+          return;
+        }
+
+        if(type === 'payouts') {
+          const head = [
+            currentLang === 'ta' ? 'பணம் தேதிகள்' : 'Payment Date',
+            currentLang === 'ta' ? 'முறை' : 'Mode',
+            currentLang === 'ta' ? 'விளக்கம்' : 'Description',
+            currentLang === 'ta' ? 'பெற்ற தொகை' : 'Amount Received',
+            currentLang === 'ta' ? 'மொத்தம்' : 'Total Amount'
+          ];
+          const rows = (pay||[]).sort((a,b)=>b.payout_date.localeCompare(a.payout_date)).map(p => {
+            const mode = p.payment_mode || '';
+            let descKey = 'payout.desc.deduction';
+            if((mode || '').toLowerCase() === 'cash') descKey = 'payout.desc.cash';
+            const desc = i18n[currentLang][descKey] || (currentLang === 'ta' ? 'பணம் கொடுப்பு' : 'Cash Payout');
+            const modeLabel = (i18n[currentLang][mode === 'Cash' ? 'payout.mode.cash' : (mode === 'Advance Adjustment' ? 'payout.mode.advance' : '')] || mode);
+            return [ formatDateDisplay(p.payout_date), modeLabel || mode, desc, fmtCurrency(parseFloat(p.amount_paid)||0), fmtCurrency(parseFloat(p.amount_paid)||0) ];
+          });
+          postProcessReport(head, rows);
+          return;
+        }
+
+        if(type === 'ledger') {
+          const combined = [
+            ... (work||[]).map(w => {
+              const raw = w.loom_master?.loom_no ?? '-';
+              const disp = String(raw).replace(/loom/ig, getLoomLabel());
+              return ({ date: w.entry_date, particulars: `${currentLang === 'ta' ? 'உற்பத்தி' : 'Prod'}: ${disp}`, earned: parseFloat(w.daily_wage)||0, received: 0 });
+            }),
+            ... (bobin||[]).map(b => {
+              const raw = b.loom_master?.loom_no ?? '-';
+              const disp = String(raw).replace(/loom/ig, getLoomLabel());
+              return ({ date: b.entry_date, particulars: `${currentLang === 'ta' ? 'பாபின்' : 'Bobin'}: ${disp}`, earned: parseFloat(b.amount_earned)||0, received: 0 });
+            }),
+            ... (pay||[]).map(p => {
+              const modeLabel = (p.payment_mode === 'Cash') ? (i18n[currentLang]['payout.desc.cash'] || 'Cash Payout') : (i18n[currentLang]['payout.desc.deduction'] || 'Deduction');
+              return ({ date: p.payout_date, particulars: `${modeLabel}`, earned: 0, received: parseFloat(p.amount_paid)||0 });
+            })
+          ];
+          combined.sort((a,b)=> a.date.localeCompare(b.date) || a.particulars.localeCompare(b.particulars));
+          let running = 0;
+          const head = [ currentLang === 'ta' ? 'தேதி' : 'Date', currentLang === 'ta' ? 'விவரம்' : 'Particulars', currentLang === 'ta' ? 'வருமானம்' : 'Amount Earned', currentLang === 'ta' ? 'பெறப்பட்டது' : 'Amount Received', currentLang === 'ta' ? 'மீதம்' : 'Balance' ];
+          const rows = combined.map(row => {
+            running += (row.earned - row.received);
+            return [ formatDateDisplay(row.date), row.particulars, row.earned ? fmtCurrency(row.earned) : '-', row.received ? fmtCurrency(row.received) : '-', fmtCurrency(running) ];
+          });
+          postProcessReport(head, rows);
+          return;
+        }
+
+        // if income_expense selected from the main reports pane, fetch aggregated income/expense for the selected weaver
+        if(type === 'income_expense') {
+          // we'll query income_transactions and expense_transactions; income table is expected to be sync'd via trigger or manual population (see SQL provided)
+          const incomeQ = _supabase.from('income_transactions').select('*, loom_master(loom_no)').eq('weaver_id', uid);
+          const expenseQ = _supabase.from('expense_transactions').select('*, loom_master(loom_no)');
+          if(start) { incomeQ.gte('income_date', start); expenseQ.gte('expense_date', start); }
+          if(end) { incomeQ.lte('income_date', end); expenseQ.lte('expense_date', end); }
+
+          const [incRes, expRes] = await Promise.all([incomeQ, expenseQ]);
+          const incomes = incRes.data || [];
+          const expenses = expRes.data || [];
+
+          // aggregate into rows: date, loom, income, expense, net
+          const map = {}; // key = date|loom
+          incomes.forEach(i => {
+            const date = formatDateDisplay(i.income_date);
+            const loom = i.loom_master?.loom_no ? String(i.loom_master.loom_no).replace(/loom/ig, getLoomLabel()) : (i.loom_id || '-');
+            const key = `${date}|${loom}`;
+            map[key] = map[key] || { date, loom, income:0, expense:0 };
+            map[key].income += parseFloat(i.amount || 0);
+          });
+          expenses.forEach(e => {
+            const date = formatDateDisplay(e.expense_date);
+            const loom = e.loom_master?.loom_no ? String(e.loom_master.loom_no).replace(/loom/ig, getLoomLabel()) : (e.loom_id || '-');
+            const key = `${date}|${loom}`;
+            map[key] = map[key] || { date, loom, income:0, expense:0 };
+            map[key].expense += parseFloat(e.amount || 0);
+          });
+
+          const rows = Object.values(map).sort((a,b) => b.date.localeCompare(a.date)).map(r => {
+            const net = r.income - r.expense;
+            return [ r.date, r.loom, fmtCurrency(r.income), fmtCurrency(r.expense), fmtCurrency(net) ];
+          });
+
+          // KPIs
+          const totalIncome = Object.values(map).reduce((s,v)=>s + (v.income||0),0);
+          const totalExpense = Object.values(map).reduce((s,v)=>s + (v.expense||0),0);
+          document.getElementById('statEarned').innerText = fmtCurrency(totalIncome);
+          document.getElementById('statPaid').innerText = fmtCurrency(totalExpense);
+          document.getElementById('statBalance').innerText = fmtCurrency(totalIncome - totalExpense);
+
+          const head = [ currentLang === 'ta' ? 'தேதி' : 'Date', currentLang === 'ta' ? 'தறி' : 'Loom', 'Income', 'Expense', 'Net' ];
+          postProcessReport(head, rows);
+          return;
+        }
+
+      } catch (err) {
+        console.error(err);
+        showToast((currentLang === 'ta' ? 'அறிக்கை ஏற்றல் தோல்வி: ' : 'Report load failed: ') + (err.message||err));
+        document.getElementById('rowsSummary').innerText = currentLang === 'ta' ? 'தோல்வி' : 'Failed';
+      }
+    }
+
+    function postProcessReport(head, rows) {
+      lastReportHead = head.map(h => String(h));
+      document.getElementById('rHead').innerHTML = `<tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>`;
+      _reportRows = rows.map(r => r.map(c => String(c)));
+      _filteredRows = _reportRows.slice(); // full filtered set (all rows for selected period/weaver)
+      _currentPage = 1;
+      document.getElementById('rowsSummary').innerText = `${_filteredRows.length} ${currentLang === 'ta' ? 'வரிசைகள்' : 'rows'}`;
+      renderTableWithPaging();
+    }
+
+    function renderTableWithPaging() {
+      const search = '';
+      if(search) _filteredRows = _reportRows.filter(r => r.join(' ').toLowerCase().includes(search));
+      else _filteredRows = _reportRows.slice();
+
+      const total = _filteredRows.length;
+      const pages = Math.max(1, Math.ceil(total / _pageSize));
+      if(_currentPage > pages) _currentPage = pages;
+      const startIdx = (_currentPage - 1) * _pageSize;
+      const pageRows = _filteredRows.slice(startIdx, startIdx + _pageSize);
+
+      const body = document.getElementById('rBody');
+      body.innerHTML = '';
+
+      pageRows.forEach(row => {
+        const tr = document.createElement('tr');
+        row.forEach((cell) => {
+          const td = document.createElement('td');
+          if(/^[₹]|^\d+(?:\.\d+)?$/.test(String(cell).trim())) td.className = 'text-right-num';
+          td.innerText = cell;
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+
+      // Calculate numeric column indices based on lastReportHead (consistent)
+      const headCells = lastReportHead.map(h => h.toLowerCase());
+      let numericIdxs = [];
+      headCells.forEach((h, i) => {
+        if (/note/.test(h)) return;
+        if (/balance/.test(h)) return;
+        if (/amount|received|earned|saree|total|income|expense|net/.test(h)) numericIdxs.push(i);
+      });
+      numericIdxs = Array.from(new Set(numericIdxs)).sort((a,b)=>a-b);
+
+      // Totals row displayed on webpage: totals only for columns present (numericIdxs)
+      if(numericIdxs.length) {
+        const totals = numericIdxs.map(ci => {
+          const sum = _filteredRows.reduce((s,r)=> {
+            const v = r[ci] ? r[ci].replace(/[₹,]/g,'').trim() : '';
+            const numericOnly = v.replace(/[^\d.\-]/g,'');
+            const n = parseFloat(numericOnly) || 0;
+            return s + n;
+          },0);
+          if (/saree/.test(headCells[ci])) return fmtInteger(sum);
+          return fmtCurrency(sum);
+        });
+
+        const full = new Array(headCells.length).fill('');
+        full[0] = i18n[currentLang]['receipt.totallabel'] || (currentLang === 'ta' ? 'மொத்தம்' : 'Totals');
+        numericIdxs.forEach((ci, idx) => {
+          full[ci] = totals[idx];
+        });
+
+        const tr = document.createElement('tr');
+        tr.className = 'totals-row';
+        full.forEach((cell, i) => {
+          const td = document.createElement('td');
+          td.innerText = cell;
+          if(numericIdxs.includes(i)) td.className = 'text-right-num';
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      }
+
+      renderPagination(total, _pageSize, _currentPage);
+      document.getElementById('rowsSummary').innerText = `${total} ${currentLang === 'ta' ? 'வரிசைகள்' : 'rows'}`;
+    }
+
+    function renderPagination(totalRows, pageSize, currentPage) {
+      const pages = Math.max(1, Math.ceil(totalRows / pageSize));
+      const container = document.getElementById('pagination');
+      container.innerHTML = '';
+
+      const createBtn = (text, disabled, onClick) => {
+        const btn = document.createElement('button');
+        btn.className = 'preset-btn';
+        btn.innerText = text;
+        btn.disabled = !!disabled;
+        btn.onclick = onClick;
+        if(disabled) btn.style.opacity = '0.6';
+        return btn;
+      };
+
+      container.appendChild(createBtn(currentLang === 'ta' ? '« முந்தைய' : '« Prev', currentPage === 1, () => { if(currentPage>1){ _currentPage--; renderTableWithPaging(); }}));
+
+      const delta = 2;
+      const start = Math.max(1, currentPage - delta);
+      const end = Math.min(pages, currentPage + delta);
+      for(let i=start;i<=end;i++){
+        const btn = createBtn(i, false, ()=>{ _currentPage = i; renderTableWithPaging(); });
+        if(i === currentPage) { btn.style.background = 'var(--brand)'; btn.style.color = '#fff'; btn.style.borderColor = 'transparent'; }
+        container.appendChild(btn);
+      }
+
+      container.appendChild(createBtn(currentLang === 'ta' ? 'அடுத்த »' : 'Next »', currentPage === pages, () => { if(currentPage < pages){ _currentPage++; renderTableWithPaging(); }}));
+
+      document.getElementById('pageInfo').innerText = `${currentLang === 'ta' ? 'பக்கம்' : 'Page'} ${currentPage} ${currentLang === 'ta' ? 'of' : 'of'} ${pages}`;
+    }
+
+    function renderEmptyTable() {
+      document.getElementById('rHead').innerHTML = '';
+      document.getElementById('rBody').innerHTML = '';
+      document.getElementById('pagination').innerHTML = '';
+      document.getElementById('pageInfo').innerText = '';
+      document.getElementById('rowsSummary').innerText = currentLang === 'ta' ? 'தரவு இல்லை' : 'No data';
+      document.getElementById('reportUserName').innerText = '';
+    }
+
+    // Export helpers: use lastReportHead + _filteredRows (entire set for selected period)
+    function tableToArrayFull() {
+      if(!lastReportHead || lastReportHead.length === 0) {
+        return { head: [], rows: [] };
+      }
+      const head = lastReportHead.map(h => sanitizeForPdf(String(h)));
+      const rows = (_filteredRows || []).map(r => r.map(c => sanitizeForPdf(String(c))));
+      return { head, rows };
+    }
+
+    // Helper: find numeric column indices by header text
+    function numericColumnIndicesFromHead(head) {
+      const lower = head.map(h => String(h).toLowerCase());
+      const numericIdxs = [];
+      lower.forEach((h, i) => {
+        if (/note/.test(h)) return;
+        if (/balance/.test(h)) return;
+        if (/amount|received|earned|saree|total|income|expense|net/.test(h)) numericIdxs.push(i);
+      });
+      return Array.from(new Set(numericIdxs)).sort((a,b)=>a-b);
+    }
+
+    // Download PDF with totals appended (totals computed over full filtered rows for selected period)
+    function downloadPDF() {
+      const { head, rows } = tableToArrayFull();
+      if(!head.length || rows.length === 0) { showToast(currentLang === 'ta' ? 'ஏற்றுமதி செய்ய தரவு இல்லை' : 'No data to export'); return; }
+
+      // compute numeric columns
+      const numericIdxs = numericColumnIndicesFromHead(head);
+
+      // compute totals from _filteredRows (original formatted values)
+      const totalsValues = numericIdxs.map(ci => {
+        const sum = (_filteredRows || []).reduce((s, r) => {
+          const v = r[ci] ? String(r[ci]).replace(/[₹,]/g,'').trim() : '';
+          const numericOnly = v.replace(/[^\d.\-]/g,'');
+          const n = parseFloat(numericOnly) || 0;
+          return s + n;
+        }, 0);
+        return sum;
+      });
+
+      // prepare a totals row (formatted)
+      const totalsRow = new Array(head.length).fill('');
+      totalsRow[0] = i18n[currentLang]['receipt.totallabel'] || (currentLang === 'ta' ? 'மொத்தம்' : 'Totals');
+      numericIdxs.forEach((ci, idx) => {
+        const header = String(head[ci]).toLowerCase();
+        if (/saree/.test(header)) totalsRow[ci] = fmtInteger(totalsValues[idx]);
+        else totalsRow[ci] = fmtCurrency(totalsValues[idx]);
+      });
+
+      // push totals row to rows to be exported
+      const exportRows = rows.slice(); // clone
+      exportRows.push(totalsRow.map(c => sanitizeForPdf(c)));
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const title = document.getElementById('reportTitleName').innerText || (currentLang === 'ta' ? 'அறிக்கை' : 'Report');
+      const range = document.getElementById('reportDateRange').innerText || '';
+      const weaverSelect = document.getElementById('analysisWeaverSelect');
+      const userName = (weaverSelect && weaverSelect.selectedOptions && weaverSelect.selectedOptions[0]) ? weaverSelect.selectedOptions[0].text.trim() : '';
+
+      doc.setFontSize(12); doc.setFont('helvetica', 'bold');
+      doc.text('EVJ Looms ERP', 40, 40);
+      doc.setFontSize(10); doc.setFont('helvetica','normal');
+      doc.text(title, 40, 56);
+      if(userName) {
+        doc.text(`${currentLang === 'ta' ? 'நெசவாளர்' : 'User'}: ${userName}`, 40, 70);
+        doc.text(range, 40, 84);
+      } else {
+        doc.text(range, 40, 70);
+      }
+      doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth - 220, 40);
+
+      const startY = userName ? 100 : 90;
+
+      // optionally include production summary at top (if checked)
+      const includeSummary = document.getElementById('includeSummary')?.checked;
+      if(includeSummary && lastProductionSummary) {
+        const summaryHead = [ getLoomLabel(), (currentLang==='ta'?'மொத்த சேலைகள்':'Total Sarees'), (currentLang==='ta'?'வருமானம்':'Amount Earned'), (currentLang==='ta'?'பாபின்':'Bobbin'), (currentLang==='ta'?'மொத்த தொகை':'Total Amount') ];
+        const summaryRows = Object.keys(lastProductionSummary).sort().map(k => {
+          const v = lastProductionSummary[k];
+          return [ k, String(Math.round(v.sarees||0)), fmtCurrency(v.amount||0), fmtCurrency(v.bobin||0), fmtCurrency(v.total||0) ];
+        });
+
+        doc.autoTable({
+          startY: startY,
+          head: [summaryHead],
+          body: summaryRows,
+          styles: { fontSize: 9, cellPadding: 6, halign: 'center' },
+          headStyles: { fillColor: [241,245,249], textColor:[71,85,105] },
+          margin: { left: 40, right: 40, bottom: 10 },
+          theme: 'striped'
+        });
+      }
+
+      // main table (with totals row appended)
+      doc.autoTable({
+        startY: doc.previousAutoTable ? (doc.previousAutoTable.finalY + 20) : startY,
+        head: [head],
+        body: exportRows,
+        styles: { fontSize: 9, cellPadding: 6, halign: 'center' },
+        headStyles: { fillColor: [241,245,249], textColor:[71,85,105] },
+        footStyles: { fillColor: [241,245,249], textColor:[15,23,42], fontStyle:'bold' },
+        margin: { left: 40, right: 40, bottom: 40 },
+        didParseCell: function (data) {
+          // data.row.index is zero-based; totals row is last row in exportRows
+          if(data.row && data.row.index === exportRows.length - 1 && data.row.section === 'body') {
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fillColor = [247,247,250];
+          }
+          data.cell.styles.halign = 'center';
+        },
+        didDrawPage: function (data) {
+          const pageNum = doc.internal.getNumberOfPages();
+          doc.setFontSize(9);
+          doc.text(`Page ${pageNum}`, pageWidth - 60, pageHeight - 12);
+        },
+        theme: 'striped'
+      });
+
+      const fileDate = new Date().toISOString().slice(0,10);
+      const weaverPart = userName ? `${userName.replace(/[\/\\?%*:|"<>]/g,'')}` : 'UnknownUser';
+      const rawFileTitle = `${weaverPart}_${title}_${fileDate}`;
+      const safeFileName = rawFileTitle.replace(/[\/\\?%*:|"<>]/g, '').trim().replace(/\s+/g, '_');
+      const fileName = `${safeFileName}.pdf`;
+
+      doc.save(fileName);
+      showToast(currentLang === 'ta' ? 'PDF ஏற்றுமதி செய்யப்பட்டது' : 'PDF exported');
+    }
+
+    // Excel export (CSV plain, uses full filtered rows)
+    function downloadExcel() {
+      if(!lastReportHead || lastReportHead.length === 0) { showToast(currentLang === 'ta' ? 'ஏற்றுமதி செய்ய தரவு இல்லை' : 'No data to export'); return; }
+      const head = lastReportHead.map(h => String(h));
+      const rows = (_filteredRows || []).map(r => {
+        const cols = r.map(td => {
+          let txt = String(td || '').replace(/₹/g,'').replace(/,/g,'').trim();
+          txt = txt.replace(/&/g,''); // ensure no ampersands
+          return `"${txt.replace(/"/g,'""')}"`;
+        });
+        return cols.join(',');
+      });
+
+      // compute totals and append as last CSV row (plain numbers)
+      const headCells = lastReportHead.map(h => h.toLowerCase());
+      let numericIdxs = [];
+      headCells.forEach((h, i) => {
+        if (/note/.test(h)) return;
+        if (/balance/.test(h)) return;
+        if (/amount|received|earned|saree|total|income|expense|net/.test(h)) numericIdxs.push(i);
+      });
+      numericIdxs = Array.from(new Set(numericIdxs)).sort((a,b)=>a-b);
+
+      if(numericIdxs.length) {
+        const totals = numericIdxs.map(ci => {
+          const sum = (_filteredRows || []).reduce((s,r) => {
+            const v = r[ci] ? String(r[ci]).replace(/[₹,]/g,'').trim() : '';
+            const numericOnly = v.replace(/[^\d.\-]/g,'');
+            const n = parseFloat(numericOnly) || 0;
+            return s + n;
+          },0);
+          return Math.round(sum);
+        });
+        const totalRow = new Array(head.length).fill('');
+        totalRow[0] = i18n[currentLang]['receipt.totallabel'] || (currentLang === 'ta' ? 'மொத்தம்' : 'Totals');
+        numericIdxs.forEach((ci, idx) => totalRow[ci] = String(totals[idx]));
+        rows.push(totalRow.map(c => `"${String(c).replace(/"/g,'""')}"`).join(','));
+      }
+
+      const headers = head.map(h => `"${String(h).replace(/"/g,'""')}"`);
+      const csvContent = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const title = document.getElementById('reportTitleName').innerText || 'report';
+      const fileDate = new Date().toISOString().slice(0,10);
+      a.download = `${title.replace(/\s+/g,'_')}_${fileDate}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast(currentLang === 'ta' ? 'Excel (CSV) ஏற்றுமதி எடுத்து முடிந்தது' : 'Excel (CSV) exported');
+    }
+
+    // --------------------------
+    // Generate Payout Receipt PDF (kept as a manual function — not auto-called)
+    // --------------------------
+    async function generatePayoutReceipt(payout) {
+      // We will generate the receipt in Tamil
+      const L = i18n['ta']; // force Tamil labels
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      // Header: EVJ Looms in bold (Tamil labels use company name as-is)
+      doc.setFontSize(16);
+      doc.setFont('helvetica','bold');
+      doc.text(L['payout.receipt.title'] || 'EVJ Looms', pageWidth/2, 60, { align: 'center' });
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica','normal');
+
+      // Labels in Tamil
+      const labelDate = L['receipt.date'] || 'தேதி';
+      const labelWeaver = L['receipt.weaver'] || 'நெசவாளர்';
+      const labelMode = L['receipt.mode'] || 'முறை';
+      const labelDesc = L['receipt.description'] || 'விளக்கம்';
+      const labelAmount = L['receipt.amount'] || 'தொகை';
+      const labelNotes = L['receipt.notes'] || 'குறிப்புகள்';
+
+      // Build sanitized values (remove ampersands and odd chars)
+      const weaverName = sanitizeForPdf(payout.weaver_name || '');
+      const payoutDate = sanitizeForPdf(formatDateDisplay(payout.payout_date || ''));
+      const modeLabel = (payout.payment_mode === 'Cash') ? (L['payout.mode.cash'] || 'பணம்') : (L['payout.mode.advance'] || 'முன்பணம் பிடித்தம்');
+      const desc = (payout.payment_mode === 'Cash') ? (L['payout.desc.cash'] || 'பணம் கொடுப்பு') : (L['payout.desc.deduction'] || 'முன்பணம் பிடித்தல்');
+      const amountText = sanitizeForPdf(fmtCurrency(payout.amount_paid || 0));
+      const notesText = sanitizeForPdf(payout.notes || '');
+
+      const lines = [
+        `${labelDate}: ${payoutDate}`,
+        `${labelWeaver}: ${weaverName}`,
+        `${labelMode}: ${modeLabel}`,
+        `${labelDesc}: ${desc}`,
+        `${labelAmount}: ${amountText}`,
+        `${labelNotes}: ${notesText}`
+      ];
+
+      let y = 100;
+      doc.setFontSize(11);
+      lines.forEach(line => {
+        doc.text(line, 40, y);
+        y += 18;
+      });
+
+      // No Receipt ID, no Authorized signature (both removed per request)
+
+      const safeName = (weaverName || 'receipt').replace(/[\/\\?%*:|"<>]/g,'').trim().replace(/\s+/g,'_');
+      const fileName = `Receipt_${safeName}_${(payout.payout_date || '').slice(0,10) || new Date().toISOString().slice(0,10)}.pdf`;
+      doc.save(fileName);
+      showToast('ரசீடு PDF உருவாக்கப்பட்டது'); // Tamil message
+    }
+
+    // --------------------------
+    // INCOME & EXPENSE REPORT FUNCTIONS
+    // --------------------------
+    let ieRows = [];
+    let ieFiltered = [];
+    let iePage = 1;
+    let iePageSize = 10;
+
+    function scheduleLoadIEReport(wait = 300) {
+      if(window._ieDebounce) clearTimeout(window._ieDebounce);
+      window._ieDebounce = setTimeout(() => {
+        iePage = 1;
+        loadIEReport();
+      }, wait);
+    }
+
+    async function loadIEReport() {
+      const weaver = document.getElementById('ieWeaverSelect')?.value;
+      const loom = document.getElementById('ieLoomSelect')?.value;
+      const start = document.getElementById('ieStartDate')?.value;
+      const end = document.getElementById('ieEndDate')?.value;
+
+      document.getElementById('ieHead').innerHTML = '';
+      document.getElementById('ieBody').innerHTML = '';
+      document.getElementById('ieRowsSummary').innerText = 'Loading...';
+      document.getElementById('ieRange').innerText = (start || end) ? `${start || '...'} to ${end || '...'}` : 'Full Period';
+
+      // Query income and expenses; income_transactions expected to be present (populated via trigger or manual job)
+      try {
+        let incQ = _supabase.from('income_transactions').select('*, loom_master(loom_no)'); // we expect loom_master relation
+        let expQ = _supabase.from('expense_transactions').select('*, loom_master(loom_no)');
+
+        if(weaver) incQ = incQ.eq('weaver_id', weaver);
+        if(start) incQ = incQ.gte('income_date', start);
+        if(end) incQ = incQ.lte('income_date', end);
+
+        if(loom) expQ = expQ.eq('loom_id', loom);
+        if(start) expQ = expQ.gte('expense_date', start);
+        if(end) expQ = expQ.lte('expense_date', end);
+
+        // If both filters applied, we still fetch both sets for aggregation
+        const [incRes, expRes] = await Promise.all([incQ, expQ]);
+        const incomes = incRes.data || [];
+        const expenses = expRes.data || [];
+
+        // Build map grouped by date & loom
+        const map = {};
+        incomes.forEach(i => {
+          const date = formatDateDisplay(i.income_date);
+          const loomName = i.loom_master?.loom_no ? String(i.loom_master.loom_no).replace(/loom/ig, getLoomLabel()) : (i.loom_id || '-');
+          const key = `${date}|${loomName}`;
+          map[key] = map[key] || { date, loom: loomName, income:0, expense:0 };
+          map[key].income += parseFloat(i.amount || 0);
+        });
+        expenses.forEach(e => {
+          const date = formatDateDisplay(e.expense_date);
+          const loomName = e.loom_master?.loom_no ? String(e.loom_master.loom_no).replace(/loom/ig, getLoomLabel()) : (e.loom_id || '-');
+          const key = `${date}|${loomName}`;
+          map[key] = map[key] || { date, loom: loomName, income:0, expense:0 };
+          map[key].expense += parseFloat(e.amount || 0);
+        });
+
+        const rows = Object.values(map).sort((a,b) => b.date.localeCompare(a.date)).map(r => [ r.date, r.loom, fmtCurrency(r.income), fmtCurrency(r.expense), fmtCurrency(r.income - r.expense) ]);
+        ieRows = rows;
+        ieFiltered = ieRows.slice();
+        renderIETableWithPaging();
+
+        const totalIncome = Object.values(map).reduce((s,v)=>s + (v.income||0),0);
+        const totalExpense = Object.values(map).reduce((s,v)=>s + (v.expense||0),0);
+        document.getElementById('ieTotalIncome').innerText = fmtCurrency(totalIncome);
+        document.getElementById('ieTotalExpenses').innerText = fmtCurrency(totalExpense);
+        document.getElementById('ieNet').innerText = fmtCurrency(totalIncome - totalExpense);
+
+        document.getElementById('ieRowsSummary').innerText = `${ieFiltered.length} rows`;
+      } catch(err) {
+        console.error(err);
+        showToast('IE report load failed: ' + (err.message || err));
+        document.getElementById('ieRowsSummary').innerText = 'Failed';
+      }
+    }
+
+    function renderIETableWithPaging() {
+      const total = ieFiltered.length;
+      const pages = Math.max(1, Math.ceil(total / iePageSize));
+      if(iePage > pages) iePage = pages;
+      const startIdx = (iePage - 1) * iePageSize;
+      const pageRows = ieFiltered.slice(startIdx, startIdx + iePageSize);
+
+      const head = [ 'Date', getLoomLabel(), 'Income', 'Expense', 'Net' ];
+      document.getElementById('ieHead').innerHTML = `<tr>${head.map(h => `<th>${h}</th>`).join('')}</tr>`;
+      const body = document.getElementById('ieBody');
+      body.innerHTML = '';
+      pageRows.forEach(row => {
+        const tr = document.createElement('tr');
+        row.forEach(cell => {
+          const td = document.createElement('td'); td.innerText = cell;
+          if(/^[₹]|^\d+(?:\.\d+)?$/.test(String(cell).trim())) td.className = 'text-right-num';
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+
+      // totals
+      const totalIncome = ieFiltered.reduce((s,r) => s + (parseFloat(String(r[2]).replace(/[₹,]/g,'')) || 0), 0);
+      const totalExpense = ieFiltered.reduce((s,r) => s + (parseFloat(String(r[3]).replace(/[₹,]/g,'')) || 0), 0);
+      const tr = document.createElement('tr'); tr.className = 'totals-row';
+      const tds = [ (i18n[currentLang]['receipt.totallabel'] || 'Totals'), '', fmtCurrency(totalIncome), fmtCurrency(totalExpense), fmtCurrency(totalIncome - totalExpense) ];
+      tds.forEach((c,i) => {
+        const td = document.createElement('td'); td.innerText = c;
+        if(i>=2) td.className = 'text-right-num';
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+
+      // pagination
+      const container = document.getElementById('iePagination');
+      container.innerHTML = '';
+      const createBtn = (text, disabled, onClick) => {
+        const btn = document.createElement('button');
+        btn.className = 'preset-btn';
+        btn.innerText = text;
+        btn.disabled = !!disabled;
+        btn.onclick = onClick;
+        if(disabled) btn.style.opacity = '0.6';
+        return btn;
+      };
+      container.appendChild(createBtn('« Prev', iePage === 1, () => { if(iePage>1){ iePage--; renderIETableWithPaging(); }}));
+      const delta = 2;
+      const start = Math.max(1, iePage - delta);
+      const end = Math.min(pages, iePage + delta);
+      for(let i=start;i<=end;i++){
+        const btn = createBtn(i, false, ()=>{ iePage = i; renderIETableWithPaging(); });
+        if(i === iePage) { btn.style.background = 'var(--brand)'; btn.style.color = '#fff'; btn.style.borderColor = 'transparent'; }
+        container.appendChild(btn);
+      }
+      container.appendChild(createBtn('Next »', iePage === pages, () => { if(iePage < pages){ iePage++; renderIETableWithPaging(); }}));
+      document.getElementById('iePageInfo').innerText = `Page ${iePage} of ${pages}`;
+    }
+
+    async function refreshIEReport() {
+      showToast('Refreshing IE report...');
+      await refreshAppStates();
+      scheduleLoadIEReport(80);
+    }
+
+    document.getElementById('saveExpenseBtn')?.addEventListener('click', async () => {
+      const date = document.getElementById('expenseDate').value;
+      const loomId = document.getElementById('expenseLoomSelect').value;
+      const amt = parseFloat(document.getElementById('expenseAmount').value || 0);
+      const note = document.getElementById('expenseNote').value || '';
+      if(!date || !loomId || !amt || amt <= 0) { showToast('Please fill date, loom and amount'); return; }
+      try {
+        setLoadingBtn(document.getElementById('saveExpenseBtn'), true, 'Saving...');
+        const { error } = await _supabase.from('expense_transactions').insert([{ expense_date: date, loom_id: loomId, amount: amt, note }]);
+        if(error) throw error;
+        showToast('Expense saved');
+        document.getElementById('expenseDate').value = new Date().toISOString().slice(0,10);
+        document.getElementById('expenseLoomSelect').value = '';
+        document.getElementById('expenseAmount').value = '';
+        document.getElementById('expenseNote').value = '';
+        await refreshAppStates();
+        scheduleLoadIEReport(120);
+      } catch(err) {
+        console.error(err);
+        showToast('Save failed: ' + (err.message || err));
+      } finally {
+        setLoadingBtn(document.getElementById('saveExpenseBtn'), false);
+      }
+    });
+
+    // IE exports
+    function downloadIEPDF() {
+      const head = ['Date', getLoomLabel(), 'Income', 'Expense', 'Net'];
+      if(!ieFiltered || ieFiltered.length === 0) { showToast('No data to export'); return; }
+      // reuse jsPDF autoTable like other export; simple export of ieFiltered rows
+      const rows = ieFiltered.map(r => r.map(c => sanitizeForPdf(String(c))));
+      const totalsRow = [ i18n[currentLang]['receipt.totallabel'] || 'Totals', '', ieFiltered.reduce((s,r)=>s + (parseFloat(String(r[2]).replace(/[₹,]/g,''))||0),0), ieFiltered.reduce((s,r)=>s + (parseFloat(String(r[3]).replace(/[₹,]/g,''))||0),0), ieFiltered.reduce((s,r)=>s + (parseFloat(String(r[2]).replace(/[₹,]/g,''))||0) - (parseFloat(String(r[3]).replace(/[₹,]/g,''))||0),0) ];
+      rows.push(totalsRow.map(c => sanitizeForPdf(String(c))));
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+      doc.autoTable({ head: [head], body: rows, styles:{fontSize:9, cellPadding:6}, theme:'striped', headStyles:{fillColor:[241,245,249]} });
+      doc.save(`IE_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+      showToast('IE PDF exported');
+    }
+
+    function downloadIECSV() {
+      if(!ieFiltered || ieFiltered.length === 0) { showToast('No data to export'); return; }
+      const head = ['Date', 'Loom', 'Income', 'Expense', 'Net'];
+      const rows = ieFiltered.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(','));
+      const csv = '\uFEFF' + head.join(',') + '\n' + rows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `IE_Report_${new Date().toISOString().slice(0,10)}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      showToast('IE CSV exported');
+    }
+
+    // --------------------------
+    // Misc / UI utilities
+    // --------------------------
+    // Compact toggle
+    let compact = false;
+    function toggleCompact() {
+      compact = !compact;
+      document.querySelector('main').classList.toggle('compact', compact);
+      document.getElementById('toggleCompact').innerText = compact ? (currentLang === 'ta' ? 'சாதாரண' : 'Normal') : (currentLang === 'ta' ? 'சுருக்கமான காட்சி' : 'Compact View');
+    }
+
+    // Tab handling
+    function showTab(id, btn) {
+      document.querySelectorAll('.tab-content').forEach(c => {
+        c.classList.add('hidden');
+        c.setAttribute('aria-hidden','true');
+      });
+      document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
+
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.classList.remove('hidden');
+      el.setAttribute('aria-hidden','false');
+
+      if(btn) btn.classList.add('active');
+      else {
+        const map = { transaction: 'tabEntryBtn', bobin: 'tabBobinBtn', insights: 'tabReportsBtn', admin: 'tabAdminBtn', incomeExpenses: 'tabIncomeExpBtn' };
+        const navBtn = document.getElementById(map[id]);
+        if(navBtn) navBtn.classList.add('active');
+      }
+
+      if(id === 'insights') {
+        setAppTheme('report');
+        refreshAppStates().then(() => {
+          wireAutoFilters();
+          _currentPage = 1;
+          loadReport();
+        });
+      } else if(id === 'transaction') {
+        setAppTheme('work');
+        document.getElementById('manualDate').value = new Date().toISOString().split('T')[0];
+        refreshAppStates();
+      } else if(id === 'bobin') {
+        setAppTheme('work');
+        document.getElementById('bobinDate').value = new Date().toISOString().split('T')[0];
+        refreshAppStates();
+      } else if(id === 'admin') {
+        setAppTheme('work');
+        // ensure admin forms have defaults and selects populated
+        document.getElementById('payoutDate').value = new Date().toISOString().split('T')[0];
+        refreshAppStates();
+      } else if(id === 'incomeExpenses') {
+        setAppTheme('report');
+        // populate IE selects and run report
+        document.getElementById('expenseDate').value = new Date().toISOString().slice(0,10);
+        refreshAppStates().then(() => {
+          scheduleLoadIEReport(60);
+        });
+      }
+
+      syncMobileBarActive(id);
+    }
+
+    function setAppTheme(mode) {
+      if(!['work','report'].includes(mode)) mode = 'work';
+      document.body.setAttribute('data-theme', mode);
+      const workBtn = document.getElementById('tabEntryBtn');
+      const reportsBtn = document.getElementById('tabReportsBtn');
+      const bobinBtn = document.getElementById('tabBobinBtn');
+      [workBtn, bobinBtn, reportsBtn].forEach(b => {
+        if(!b) return;
+        const active = b.classList.contains('active');
+        b.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      // also admin
+      const adminBtn = document.getElementById('tabAdminBtn');
+      if(adminBtn) adminBtn.setAttribute('aria-pressed', adminBtn.classList.contains('active') ? 'true' : 'false');
+      const ieBtn = document.getElementById('tabIncomeExpBtn');
+      if(ieBtn) ieBtn.setAttribute('aria-pressed', ieBtn.classList.contains('active') ? 'true' : 'false');
+    }
+
+    function syncMobileBarActive(sectionId) {
+      const btns = document.querySelectorAll('#mobileBar button');
+      btns.forEach(b => b.classList.remove('active'));
+      if(sectionId === 'transaction') btns[0].classList.add('active');
+      if(sectionId === 'bobin') btns[1].classList.add('active');
+      if(sectionId === 'insights') btns[2].classList.add('active');
+      if(sectionId === 'admin') btns[3].classList.add('active');
+      if(sectionId === 'incomeExpenses') btns[4] && btns[4].classList.add('active');
+    }
+
+    // NAV compression on small screens when user scrolls
+    function handleNavCompression() {
+      const nav = document.getElementById('topNav');
+      const smallScreen = window.innerWidth <= 600;
+      if(!smallScreen) {
+        nav.classList.remove('nav-compressed');
+        return;
+      }
+      if(window.scrollY > 30) nav.classList.add('nav-compressed');
+      else nav.classList.remove('nav-compressed');
+    }
+
+    // Ripple effect (visual only) - does not affect sizes
+    function attachRipples() {
+      const rippleTargets = document.querySelectorAll('.primary-btn, .secondary-btn, .preset-btn, .nav-pill, #translateBtn');
+      rippleTargets.forEach(btn => {
+        btn.addEventListener('click', function (e) {
+          const rect = btn.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height) * 1.2;
+          const circle = document.createElement('span');
+          circle.className = 'ripple';
+          circle.style.width = circle.style.height = size + 'px';
+          const left = e.clientX - rect.left - size/2;
+          const top = e.clientY - rect.top - size/2;
+          circle.style.left = (left) + 'px';
+          circle.style.top = (top) + 'px';
+          btn.appendChild(circle);
+          setTimeout(()=> circle.remove(), 700);
+        }, {passive:true});
+      });
+    }
+
+    // Init
+    window.addEventListener('load', () => {
+      document.getElementById('manualDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('bobinDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('payoutDate').value = new Date().toISOString().split('T')[0];
+      _pageSize = 10;
+      refreshAppStates().then(() => {
+        wireAutoFilters();
+        attachRipples();
+      });
+      // start on transaction per request
+      showTab('transaction', document.getElementById('tabEntryBtn'));
+      handleNavCompression();
+      window.addEventListener('scroll', handleNavCompression, {passive:true});
+      window.addEventListener('resize', handleNavCompression, {passive:true});
+      // ensure translate button label is correct
+      const tBtnLabel = document.getElementById('translateLabel');
+      if (tBtnLabel) tBtnLabel.innerText = currentLang === 'ta' ? 'தமிழ்' : 'English';
+
+      // keyboard navigation for mobileBar
+      document.getElementById('mobileBar').addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' ') e.target.click();
+      });
+    });
+  </script>
+</body>
+</html>
